@@ -1,3 +1,5 @@
+from utils import ActivationSampler
+
 class ExtractResUNetMaps:
 
   def __init__(self, model, dataset, device):
