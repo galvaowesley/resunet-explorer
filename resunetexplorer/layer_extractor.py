@@ -1,5 +1,7 @@
 import functools
 
+# TODO: Usar as funções model_up_to(model, module) e get_output_shape() para capturar o 
+# tamanho da saída e tornar mais geral. 
 class ExtractResUNetLayers:
     """Layers extractor class for PyTorch ResUNet.
 

@@ -1,3 +1,5 @@
+'''Utility functions and classes for working with Pytorch modules'''
+
 from torch import nn
 
 

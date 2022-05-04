@@ -1,4 +1,7 @@
-from utils import ActivationSampler
+from resunetexplorer.utils import ActivationSampler
+import torch
+import matplotlib.pyplot as plt
+
 
 class ExtractResUNetMaps:
 
@@ -13,7 +16,7 @@ class ExtractResUNetMaps:
     feature maps of its respective image and layer to CPU and returns the 
     feature maps.  
     """
-    # TODO Resolver a dependência do ActivationSampler() copiando a classe pra cá. 
+     
     sampler = ActivationSampler(layer)
 
     img, label = self.dataset[img_idx]
@@ -36,6 +39,7 @@ class ExtractResUNetMaps:
 
   # TODO: Se não passar nenhum índice, mostrar uma figura com todas as feature maps para cada layer. Um grid plot. 
   # TODO: Organizar os plots em mais linhas que colunas. Por exemplo 128 plots por 4 colunas = 32 linhas
+  # TODO: Parâmetro opcional para mostrar as imagens na mesma escala de valor de intensidade. 
   def show_feature_maps(img_idx: int, layer_names: list, network_part: str, layers_fm_list, maps_idx = None, fig_size = [25, 23]):
 
 
