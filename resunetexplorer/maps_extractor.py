@@ -28,6 +28,7 @@ class ExtractResUNetMaps:
     
     return layer_feature_maps
 
+  # TODO: Descrever a função
   def get_multiple_feature_maps(self, img_idx, layers):
     layers_fm_list = []
 
@@ -36,30 +37,54 @@ class ExtractResUNetMaps:
 
     return layers_fm_list
   
-
-  # TODO: Se não passar nenhum índice, mostrar uma figura com todas as feature maps para cada layer. Um grid plot. 
-  # TODO: Organizar os plots em mais linhas que colunas. Por exemplo 128 plots por 4 colunas = 32 linhas
+  # TODO: Descrever a função
+  # TODO: Parâmetro opcional para salvar a figura em determinada extensão em determinado diretório.
   # TODO: Parâmetro opcional para mostrar as imagens na mesma escala de valor de intensidade. 
-  def show_feature_maps(img_idx: int, layer_names: list, network_part: str, layers_fm_list, maps_idx = None, fig_size = [25, 23]):
+   def show_feature_maps(self, layers, layers_fm_list, img_idx = None,  maps_idx = None, fig_size = (20, 75), ncols = 4):    
+      
+    n_layers = len(layers_fm_list)
+    nrows = 64//ncols
 
+    if maps_idx != None:
 
-    qty_maps = len(maps_idx)
-    print(layer_names)
-    n_layers = len(layer_names)
+      qty_maps = len(maps_idx)      
+    
+      for layer_idx in range(n_layers):
+        
+        plt.figure(figsize = fig_size)
 
-    for layer_idx in range(n_layers):
-      plt.figure(figsize = fig_size)
+        for idx in range(qty_maps):
+          # Show feature map
+          map_idx = maps_idx[idx] 
+          fig = plt.subplot(nrows, ncols, idx+1)    
+          ax = plt.imshow(layers_fm_list[layer_idx][map_idx], 'gray')
+          layer_path = layers['network_part'][layer_idx]
+          # Plot title
+          plt.title(f'Image {img_idx} \nFeature map {map_idx} - {layer_path}')
+          # Hide axis
+          ax.axes.get_xaxis().set_visible(False)
+          ax.axes.get_yaxis().set_visible(False)
+          # Adjust space between plots
+          plt.subplots_adjust(wspace=0.02, hspace=0.0)
+          plt.tight_layout()  
 
-      for idx in range(qty_maps):
-        # Show feature map
-        map_idx = maps_idx[idx] 
-        fig = plt.subplot(layer_idx + 1, qty_maps, idx+1)    
-        ax = plt.imshow(layers_fm_list[layer_idx][map_idx], 'gray')
-        # Plot title
-        plt.title(f'Image {img_idx} - Feature map {map_idx} - {network_part}.{layer_names[layer_idx]}')
-        # Hide axis
-        ax.axes.get_xaxis().set_visible(False)
-        ax.axes.get_yaxis().set_visible(False)
-        # Adjust space between plots
-        plt.subplots_adjust(wspace=0.03, hspace=0)
-        plt.tight_layout()
+    else:
+
+      for layer_idx in range(n_layers):   
+        
+        plt.figure(figsize = fig_size)
+
+        for idx in range(64):
+          # Show feature map
+          map_idx = idx 
+          fig = plt.subplot(nrows, ncols, idx+1)    
+          ax = plt.imshow(layers_fm_list[layer_idx][map_idx], 'gray')
+          layer_path = layers['network_part'][layer_idx]
+          # Plot title
+          plt.title(f'Image {img_idx} \nFeature map {map_idx} - {layer_path}')
+          # Hide axis
+          ax.axes.get_xaxis().set_visible(False)
+          ax.axes.get_yaxis().set_visible(False)
+          # Adjust space between plots
+          plt.subplots_adjust(wspace=0.02, hspace=0.0)
+          plt.tight_layout()  
