@@ -3,7 +3,7 @@ import torch
 import matplotlib.pyplot as plt
 
 
-class ExtractResUNetMaps_v2:
+class ExtractResUNetMaps:
 
   def __init__(self, model, dataset, device):
     self.model = model
