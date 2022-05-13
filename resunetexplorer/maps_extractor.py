@@ -105,7 +105,7 @@ class ExtractResUNetMaps:
   # TODO: Descrever a função
   # TODO: Parâmetro opcional para salvar a figura em determinada extensão em determinado diretório.
   # TODO: Parâmetro opcional para mostrar as imagens na mesma escala de valor de intensidade. 
-  def show_kernels(self, kernels_list,  kernels_idx = None, fig_size = (20, 75), ncols = 4):    
+  def show_kernels(self, layers,  kernels_list,  kernels_idx = None, fig_size = (20, 75), ncols = 4):    
         
       n_layers = len(kernels_list)
       nrows = 64//ncols
