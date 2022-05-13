@@ -52,7 +52,8 @@ class ExtractResUNetMaps:
   
   # TODO: Descrever a função
   # TODO: Parâmetro opcional para salvar a figura em determinada extensão em determinado diretório.
-  # TODO: Parâmetro opcional para mostrar as imagens na mesma escala de valor de intensidade. 
+  # TODO: Parâmetro opcional para mostrar as imagens na mesma escala de valor de intensidade. Deve ser o mín
+  # e máx entre todas as figuras da camada. 
   def show_feature_maps(self, layers, layers_fm_list, img_idx = None,  maps_idx = None, fig_size = (20, 75), ncols = 4):    
       
     n_layers = len(layers_fm_list)
@@ -105,6 +106,7 @@ class ExtractResUNetMaps:
   # TODO: Descrever a função
   # TODO: Parâmetro opcional para salvar a figura em determinada extensão em determinado diretório.
   # TODO: Parâmetro opcional para mostrar as imagens na mesma escala de valor de intensidade. 
+  # TODO: Usar uma tupla como parâmetro para dar a possibilidade de visualizar os canais de um kernel. 
   def show_kernels(self, layers,  kernels_list,  kernels_idx = None, fig_size = (20, 75), ncols = 4):    
         
       n_layers = len(kernels_list)
