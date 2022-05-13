@@ -3,7 +3,7 @@ import torch
 import matplotlib.pyplot as plt
 
 
-class ExtractResUNetMaps:
+class ExtractResUNetMaps_v2:
 
   def __init__(self, model, dataset, device):
     self.model = model
@@ -36,6 +36,19 @@ class ExtractResUNetMaps:
       layers_fm_list.append(self.get_feature_maps(img_idx, layers[i]))
 
     return layers_fm_list
+  
+  def get_kernels(self, layer):
+    kernels = layer.weight
+    kernels_to_cpu = kernels.detach().to('cpu')
+    return kernels_to_cpu
+  
+  def get_multiple_kernels(self, layers):
+    kernels_list = []
+    for i in range(len(layers)):
+      kernels_list.append(self.get_kernels(layers[i]))
+    
+    return kernels_list
+
   
   # TODO: Descrever a função
   # TODO: Parâmetro opcional para salvar a figura em determinada extensão em determinado diretório.
@@ -87,4 +100,56 @@ class ExtractResUNetMaps:
           ax.axes.get_yaxis().set_visible(False)
           # Adjust space between plots
           plt.subplots_adjust(wspace=0.02, hspace=0.0)
-          plt.tight_layout()  
+          plt.tight_layout()
+
+  # TODO: Descrever a função
+  # TODO: Parâmetro opcional para salvar a figura em determinada extensão em determinado diretório.
+  # TODO: Parâmetro opcional para mostrar as imagens na mesma escala de valor de intensidade. 
+  def show_kernels(self, kernels_list,  kernels_idx = None, fig_size = (20, 75), ncols = 4):    
+        
+      n_layers = len(kernels_list)
+      nrows = 64//ncols
+
+      if kernels_idx != None:
+
+        qty_maps = len(kernels_idx)      
+      
+        for layer_idx in range(n_layers):
+          
+          plt.figure(figsize = fig_size)
+
+          for idx in range(qty_maps):
+            # Show kernel
+            kernel_idx = kernels_idx[idx] 
+            fig = plt.subplot(nrows, ncols, idx+1)    
+            ax = plt.imshow(kernels_list[layer_idx][kernel_idx][0], 'gray')
+            layer_path = layers['network_part'][layer_idx]
+            # Plot title
+            plt.title(f'Kernel {kernel_idx} - {layer_path}')
+            # Hide axis
+            ax.axes.get_xaxis().set_visible(False)
+            ax.axes.get_yaxis().set_visible(False)
+            # Adjust space between plots
+            plt.subplots_adjust(wspace=0.02, hspace=0.0)
+            plt.tight_layout()  
+
+      else:
+
+        for layer_idx in range(n_layers):   
+          
+          plt.figure(figsize = fig_size)
+
+          for idx in range(64):
+            # Show kernel
+            kernel_idx = idx 
+            fig = plt.subplot(nrows, ncols, idx+1)    
+            ax = plt.imshow(kernels_list[layer_idx][kernel_idx][0], 'gray')
+            layer_path = layers['network_part'][layer_idx]
+            # Plot title
+            plt.title(f'Kernel {kernel_idx} - {layer_path}')
+            # Hide axis
+            ax.axes.get_xaxis().set_visible(False)
+            ax.axes.get_yaxis().set_visible(False)
+            # Adjust space between plots
+            plt.subplots_adjust(wspace=0.02, hspace=0.0)
+            plt.tight_layout() 
