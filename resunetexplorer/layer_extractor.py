@@ -1,16 +1,16 @@
 from resunetexplorer.utils import get_submodule_str, get_submodule, get_output_shape, get_number_maps, model_up_to
 
 class ExtractResUNetLayers:
-   """Layers extractor class for PyTorch ResUNet.
+    """Layers extractor class for PyTorch ResUNet.
 
-      Receives the model, the network part (encoder or decoder) and the names of the layers to be extracted
+        Receives the model, the network part (encoder or decoder) and the names of the layers to be extracted
 
-      Parameters
-      ----------
-      model : Pytorch model      
-      layers_paths : list
-          Contains the paths to the layers.
-          e.g. ['encoder.resblock1', 'encoder.resblock2', ...]
+        Parameters
+        ----------
+        model : Pytorch model      
+        layers_paths : list
+            Contains the paths to the layers.
+            e.g. ['encoder.resblock1', 'encoder.resblock2', ...]
 
     """
 
@@ -22,7 +22,7 @@ class ExtractResUNetLayers:
     # FIXME: A obtenção do submodulo não está funcionando para camadas da parte 'decoder' da rede. 
     def get_layers(self):
         """
-    """
+        """
         layers_dict = {
             "network_part": [],
             "n_maps": [],
