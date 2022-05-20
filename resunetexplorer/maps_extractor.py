@@ -3,7 +3,7 @@ import torch
 import matplotlib.pyplot as plt
 
 
-class ExtractResUNetMaps:
+class ExtractResUNetMaps_v2:
 
   def __init__(self, model, dataset, device):
     self.model = model
@@ -98,7 +98,7 @@ class ExtractResUNetMaps:
           plt.title(f'Image {img_idx} \nFeature map {map_idx} - {layer_path}')
           # Hide axis
           ax.axes.get_xaxis().set_visible(False)
-          ax.axes.get_yaxis().set_visible(False)
+          ax.axes.get_ykernels_idxaxis().set_visible(False)
           # Adjust space between plots
           plt.subplots_adjust(wspace=0.02, hspace=0.0)
           plt.tight_layout()
@@ -106,8 +106,7 @@ class ExtractResUNetMaps:
   # TODO: Descrever a função
   # TODO: Parâmetro opcional para salvar a figura em determinada extensão em determinado diretório.
   # TODO: Parâmetro opcional para mostrar as imagens na mesma escala de valor de intensidade. 
-  # TODO: Usar uma tupla como parâmetro para dar a possibilidade de visualizar os canais de um kernel. 
-  def show_kernels(self, layers,  kernels_list,  kernels_idx = None, fig_size = (20, 75), ncols = 4):    
+  def show_kernels_per_channel(self, layers,  kernels_list,  kernels_idx = None, channel_idx = 0, fig_size = (20, 75), ncols = 4):    
         
       n_layers = len(kernels_list)
       nrows = 64//ncols
@@ -124,10 +123,10 @@ class ExtractResUNetMaps:
             # Show kernel
             kernel_idx = kernels_idx[idx] 
             fig = plt.subplot(nrows, ncols, idx+1)    
-            ax = plt.imshow(kernels_list[layer_idx][kernel_idx][0], 'gray')
+            ax = plt.imshow(kernels_list[layer_idx][kernel_idx][channel_idx], 'gray')
             layer_path = layers['network_part'][layer_idx]
             # Plot title
-            plt.title(f'Kernel {kernel_idx} - {layer_path}')
+            plt.title(f'Kernel {kernel_idx} - Channel {channel_idx} - {layer_path}')
             # Hide axis
             ax.axes.get_xaxis().set_visible(False)
             ax.axes.get_yaxis().set_visible(False)
@@ -145,13 +144,62 @@ class ExtractResUNetMaps:
             # Show kernel
             kernel_idx = idx 
             fig = plt.subplot(nrows, ncols, idx+1)    
-            ax = plt.imshow(kernels_list[layer_idx][kernel_idx][0], 'gray')
+            ax = plt.imshow(kernels_list[layer_idx][kernel_idx][channel_idx], 'gray')
             layer_path = layers['network_part'][layer_idx]
             # Plot title
-            plt.title(f'Kernel {kernel_idx} - {layer_path}')
+            plt.title(f'Kernel {kernel_idx} - Channel {channel_idx} - {layer_path}')
             # Hide axis
             ax.axes.get_xaxis().set_visible(False)
             ax.axes.get_yaxis().set_visible(False)
             # Adjust space between plots
             plt.subplots_adjust(wspace=0.02, hspace=0.0)
             plt.tight_layout() 
+
+  def show_channels_per_kernel(self, layers, kernels_list,  kernel_idx = 0, channels_idx = None, fig_size = (20, 75), ncols = 4):    
+      
+    n_layers = len(kernels_list)
+    nrows = 64//ncols
+
+    if channels_idx != None:
+
+      qty_channel = len(channels_idx)      
+    
+      for layer_idx in range(n_layers):
+        
+        plt.figure(figsize = fig_size)
+
+        for idx in range(qty_channel):
+          # Show kernel
+          channel_idx = channels_idx[idx] 
+          fig = plt.subplot(nrows, ncols, idx+1)    
+          ax = plt.imshow(kernels_list[layer_idx][kernel_idx][channel_idx], 'gray')
+          layer_path = layers['network_part'][layer_idx]
+          # Plot title
+          plt.title(f'Kernel {kernel_idx} - Channel {channel_idx} - {layer_path}')
+          # Hide axis
+          ax.axes.get_xaxis().set_visible(False)
+          ax.axes.get_yaxis().set_visible(False)
+          # Adjust space between plots
+          plt.subplots_adjust(wspace=0.02, hspace=0.0)
+          plt.tight_layout()  
+
+    else:
+
+      for layer_idx in range(n_layers):   
+        
+        plt.figure(figsize = fig_size)
+
+        for idx in range(64):
+          # Show kernel
+          channel_idx = idx 
+          fig = plt.subplot(nrows, ncols, idx+1)    
+          ax = plt.imshow(kernels_list[layer_idx][kernel_idx][channel_idx], 'gray')
+          layer_path = layers['network_part'][layer_idx]
+          # Plot title
+          plt.title(f'Kernel {kernel_idx} - Channel {channel_idx} - {layer_path}')
+          # Hide axis
+          ax.axes.get_xaxis().set_visible(False)
+          ax.axes.get_yaxis().set_visible(False)
+          # Adjust space between plots
+          plt.subplots_adjust(wspace=0.02, hspace=0.0)
+          plt.tight_layout()
