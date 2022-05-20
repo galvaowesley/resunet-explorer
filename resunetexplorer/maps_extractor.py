@@ -98,7 +98,7 @@ class ExtractResUNetMaps:
           plt.title(f'Image {img_idx} \nFeature map {map_idx} - {layer_path}')
           # Hide axis
           ax.axes.get_xaxis().set_visible(False)
-          ax.axes.get_ykernels_idxaxis().set_visible(False)
+          ax.axes.get_yaxis().set_visible(False)
           # Adjust space between plots
           plt.subplots_adjust(wspace=0.02, hspace=0.0)
           plt.tight_layout()
