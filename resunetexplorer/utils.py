@@ -78,11 +78,26 @@ def get_number_maps(model, module):
     """Return the number of feature maps of a layer, given the model and its module
     """
     # Get sub model
-    sub_model = model_up_to(model, module)
-    # Get the output shape of sub model
-    n_maps = get_output_shape(sub_model, (1, 1))
+    sub_module = get_submodule(model, module)
+    # Get Actovations given a sub module
+    act = ActivationSampler(sub_module)
+    img = torch.zeros((1,1,1,1))
+    # Pass img through model 
+    model(img)
+    n_maps = act.activation.shape[1]
     # Return number of feature maps
-    return n_maps[0]
+    return n_maps   
+    
+# Discontinued 
+# def get_number_maps_(model, module):
+#     """Return the number of feature maps of a layer, given the model and its module
+#     """
+#     # Get sub model
+#     sub_module = model_up_to(model, module)
+#     # Get the output shape of sub_module
+#     n_maps = get_output_shape(sub_module, (1, 1))
+#     # Return number of feature maps
+#     return n_maps[0]
 
 def model_up_to(model, module):
   """Return a new model with all layers in model up to layer `module`."""
