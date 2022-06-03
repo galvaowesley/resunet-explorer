@@ -12,6 +12,8 @@ import scipy
 from scipy import ndimage, misc
 import pyprog
 
+import numpy as np
+
 
 class ActivationSampler(nn.Module):
     '''Generates a hook for sampling a layer activation. Can be used as
