@@ -1,9 +1,16 @@
 '''Utility functions and classes for working with Pytorch modules'''
 
-from collections import OrderedDict
 from torch import nn
 import torch
+from torch.nn.functional import interpolate 
+from torch.functional import F
+from torch.nn.functional import avg_pool2d
+
+from collections import OrderedDict
 import functools
+import scipy
+from scipy import ndimage, misc
+import pyprog
 
 
 class ActivationSampler(nn.Module):
@@ -122,3 +129,76 @@ def model_up_to(model, module):
   new_model = torch.nn.Sequential(OrderedDict(splitted_model))
   
   return new_model
+
+  def get_image_label(dataset, img_idx):
+    """Return original the image, equalized image, ground truth 
+    and file name, given a dataset and image index. 
+    
+    """
+    # Get original image from dataset
+    img_or, _ = dataset.get_item(img_idx)
+    img_or = np.array(img_or)
+    # Get equalized image and its label
+    img_equalized, label = dataset[img_idx]    
+    # Get filename
+    filename = dataset.img_file_paths[img_idx].stem  
+        
+    return img_or, img_equalized, label, filename
+
+def feature_maps_interp(feature_maps, mode_ = 'linear', scale_factor_ = 2):
+  """Feature maps interpolation"""
+
+  if mode_ == 'linear':
+    # Run interpolation on feature maps with chosen scale factor
+    feature_maps_interpolated = F.interpolate(feature_maps, 
+                                              scale_factor=scale_factor_, 
+                                              mode = mode_)
+    
+    feature_maps_interpolated = feature_maps_interpolated.permute(0, 2, 1)
+
+    feature_maps_interpolated = F.interpolate(feature_maps_interpolated, 
+                                              scale_factor=scale_factor_, 
+                                              mode = mode_)
+    
+    feature_maps_interpolated = feature_maps_interpolated.permute(0, 2 , 1)  
+    
+  if mode_ == 'bicubic':
+    # Change tensor dimension to [batch_size == 1, channels, height, width]
+    feature_maps = feature_maps[None]
+    # Run interpolation on feature maps with chosen scale factor
+    feature_maps_interpolated = F.interpolate(feature_maps, 
+                                              scale_factor=scale_factor_, 
+                                              mode = mode_)
+    feature_maps_interpolated = torch.squeeze(feature_maps_interpolated)
+
+  return feature_maps_interpolated
+
+def image_sampling(image, kernel_size_):
+
+  # Change tensor dimension to [batch_size == 1, channels, height, width]
+  image = image[None]
+  # Run interpolation on feature maps with chosen scale factor
+  image_sampled = torch.nn.functional.avg_pool2d(image, 
+                                            kernel_size = kernel_size_)
+  image_sampled = torch.squeeze(image_sampled)
+
+  return image_sampled
+
+def binary_dilation(binary_image, iterations_level):
+  """Dilation function over a binary image"""
+
+  dilated_image = scipy.ndimage.binary_dilation(binary_image, iterations = iterations_level)
+  dilated_image = dilated_image.astype(int)
+  dilated_image = torch.from_numpy(dilated_image)
+
+  return dilated_image
+
+def feature_maps_masking(layer_feature_maps, mask):
+  """
+  Apply the dilation and masking over all the feature maps of ResUNet layer. 
+  The dilation uses iterations_level to define the level of iterations.  
+  """
+  # Mask all feature maps of layer_feature_maps
+  feature_maps_masked = layer_feature_maps*mask
+
+  return feature_maps_masked
