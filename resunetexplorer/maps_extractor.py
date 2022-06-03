@@ -72,7 +72,7 @@ class ExtractResUNetMaps:
           map_idx = maps_idx[idx] 
           fig = plt.subplot(nrows, ncols, idx+1)    
           ax = plt.imshow(layers_fm_list[layer_idx][map_idx], 'gray')
-          layer_path = layers['network_part'][layer_idx]
+          layer_path = layers['layer_path'][layer_idx]
           # Plot title
           plt.title(f'Image {img_idx} \nFeature map {map_idx} - {layer_path}')
           # Hide axis
@@ -93,7 +93,7 @@ class ExtractResUNetMaps:
           map_idx = idx 
           fig = plt.subplot(nrows, ncols, idx+1)    
           ax = plt.imshow(layers_fm_list[layer_idx][map_idx], 'gray')
-          layer_path = layers['network_part'][layer_idx]
+          layer_path = layers['layer_path'][layer_idx]
           # Plot title
           plt.title(f'Image {img_idx} \nFeature map {map_idx} - {layer_path}')
           # Hide axis
@@ -124,7 +124,7 @@ class ExtractResUNetMaps:
             kernel_idx = kernels_idx[idx] 
             fig = plt.subplot(nrows, ncols, idx+1)    
             ax = plt.imshow(kernels_list[layer_idx][kernel_idx][channel_idx], 'gray')
-            layer_path = layers['network_part'][layer_idx]
+            layer_path = layers['layer_path'][layer_idx]
             # Plot title
             plt.title(f'Kernel {kernel_idx} - Channel {channel_idx} - {layer_path}')
             # Hide axis
@@ -145,7 +145,7 @@ class ExtractResUNetMaps:
             kernel_idx = idx 
             fig = plt.subplot(nrows, ncols, idx+1)    
             ax = plt.imshow(kernels_list[layer_idx][kernel_idx][channel_idx], 'gray')
-            layer_path = layers['network_part'][layer_idx]
+            layer_path = layers['layer_path'][layer_idx]
             # Plot title
             plt.title(f'Kernel {kernel_idx} - Channel {channel_idx} - {layer_path}')
             # Hide axis
@@ -173,7 +173,7 @@ class ExtractResUNetMaps:
           channel_idx = channels_idx[idx] 
           fig = plt.subplot(nrows, ncols, idx+1)    
           ax = plt.imshow(kernels_list[layer_idx][kernel_idx][channel_idx], 'gray')
-          layer_path = layers['network_part'][layer_idx]
+          layer_path = layers['layer_path'][layer_idx]
           # Plot title
           plt.title(f'Kernel {kernel_idx} - Channel {channel_idx} - {layer_path}')
           # Hide axis
@@ -194,7 +194,7 @@ class ExtractResUNetMaps:
           channel_idx = idx 
           fig = plt.subplot(nrows, ncols, idx+1)    
           ax = plt.imshow(kernels_list[layer_idx][kernel_idx][channel_idx], 'gray')
-          layer_path = layers['network_part'][layer_idx]
+          layer_path = layers['layer_path'][layer_idx]
           # Plot title
           plt.title(f'Kernel {kernel_idx} - Channel {channel_idx} - {layer_path}')
           # Hide axis
