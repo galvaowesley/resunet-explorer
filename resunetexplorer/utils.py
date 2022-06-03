@@ -81,7 +81,7 @@ def get_number_maps(model, module):
     sub_module = get_submodule(model, module)
     # Get Actovations given a sub module
     act = ActivationSampler(sub_module)
-    img = torch.zeros((1,1,1,1))
+    img = torch.zeros((1,1,1,1)).to('cuda')
     # Pass img through model 
     model(img)
     n_maps = act.activation.shape[1]
