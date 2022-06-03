@@ -51,6 +51,8 @@ class ExtractResUNetMaps:
 
   
   # TODO: Descrever a função
+  # TODO: Caso img_idx = None, então dar a possbilidade do usuário escolher a quantidade de primeiras feature maps a serem impressas. 
+  # TODO: Quando img_idx = None, por algum motivo o mapa 56 não está sendo impresso. 
   # TODO: Parâmetro opcional para salvar a figura em determinada extensão em determinado diretório.
   # TODO: Parâmetro opcional para mostrar as imagens na mesma escala de valor de intensidade. Deve ser o mín
   # e máx entre todas as figuras da camada. 
