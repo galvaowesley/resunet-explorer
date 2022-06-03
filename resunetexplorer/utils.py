@@ -74,13 +74,11 @@ def get_output_shape(model, img_shape):
     output = model(input_img)
     return output[0].shape
 
-def get_number_maps(model, module):
+def get_number_maps(model, layer):
     """Return the number of feature maps of a layer, given the model and its module
     """
-    # Get sub model
-    sub_module = get_submodule(model, module)
-    # Get Actovations given a sub module
-    act = ActivationSampler(sub_module)
+    # Get Activations given a sub module
+    act = ActivationSampler(layer)
     img = torch.zeros((1,1,1,1)).to('cuda')
     # Pass img through model 
     model(img)
