@@ -130,10 +130,10 @@ def model_up_to(model, module):
   
   return new_model
 
-  def get_image_label(dataset, img_idx):
+def get_image_label(dataset, img_idx):
     """Return original the image, equalized image, ground truth 
     and file name, given a dataset and image index. 
-    
+
     """
     # Get original image from dataset
     img_or, _ = dataset.get_item(img_idx)
