@@ -1,5 +1,6 @@
 from resunetexplorer.utils import feature_maps_interp, image_sampling, binary_dilation, feature_maps_masking, get_image_label
 import pandas as pd
+import numpy as np
 import pyprog
 
 
