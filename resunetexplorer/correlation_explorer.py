@@ -135,6 +135,7 @@ class CorrelationExplorer:
     else:
       column =  fm_correlation_max.columns[1]
 
+    aux = fm_correlation_max.copy()
     aux[fm_correlation_max.columns[0]] = aux[fm_correlation_max.columns[0]].astype('str')
     aux[fm_correlation_max.columns[1]] = aux[fm_correlation_max.columns[1]].astype('str')
     fm_corr_freq = pd.DataFrame(aux[column].value_counts())
