@@ -54,9 +54,7 @@ class ExtractResUNetMaps:
   # TODO: Caso img_idx = None, então dar a possbilidade do usuário escolher a quantidade de primeiras feature maps a serem impressas. 
   # TODO: Quando img_idx = None, por algum motivo o mapa 56 não está sendo impresso. 
   # TODO: Parâmetro opcional para salvar a figura em determinada extensão em determinado diretório.
-  # TODO: Parâmetro opcional para mostrar as imagens na mesma escala de valor de intensidade. Deve ser o mín
-  # e máx entre todas as figuras da camada. 
-  def show_feature_maps(self, layers, layers_fm_list, img_idx = None,  maps_idx = None, fig_size = (20, 75), ncols = 4):    
+  def show_feature_maps(self, layers, layers_fm_list, img_idx = None,  maps_idx = None, scalar_data = False, fig_size = (20, 75), ncols = 4):    
       
     n_layers = len(layers_fm_list)
     nrows = 64//ncols
@@ -68,12 +66,20 @@ class ExtractResUNetMaps:
       for layer_idx in range(n_layers):
         
         plt.figure(figsize = fig_size)
+        
+        if scalar_data == True:
+          # Get min and max from set of feature maps
+          v_min = layers_fm_list[layer_idx].min()
+          v_max = layers_fm_list[layer_idx].max()
+        else:
+          v_min = None
+          v_max = None
 
         for idx in range(qty_maps):
           # Show feature map
           map_idx = maps_idx[idx] 
           fig = plt.subplot(nrows, ncols, idx+1)    
-          ax = plt.imshow(layers_fm_list[layer_idx][map_idx], 'gray')
+          ax = plt.imshow(layers_fm_list[layer_idx][map_idx], vmin = v_min, vmax = v_max, cmap = 'gray')
           layer_path = layers['layer_path'][layer_idx]
           # Plot title
           plt.title(f'Image {img_idx} \nFeature map {map_idx} - {layer_path}')
@@ -90,11 +96,19 @@ class ExtractResUNetMaps:
         
         plt.figure(figsize = fig_size)
 
+        if scalar_data == True:
+          # Get min and max from set of feature maps
+          v_min = layers_fm_list[layer_idx].min()
+          v_max = layers_fm_list[layer_idx].max()
+        else:
+          v_min = None
+          v_max = None
+
         for idx in range(64):
           # Show feature map
           map_idx = idx 
           fig = plt.subplot(nrows, ncols, idx+1)    
-          ax = plt.imshow(layers_fm_list[layer_idx][map_idx], 'gray')
+          ax = plt.imshow(layers_fm_list[layer_idx][map_idx], vmin = v_min, vmax = v_max, cmap = 'gray')
           layer_path = layers['layer_path'][layer_idx]
           # Plot title
           plt.title(f'Image {img_idx} \nFeature map {map_idx} - {layer_path}')
@@ -107,8 +121,7 @@ class ExtractResUNetMaps:
 
   # TODO: Descrever a função
   # TODO: Parâmetro opcional para salvar a figura em determinada extensão em determinado diretório.
-  # TODO: Parâmetro opcional para mostrar as imagens na mesma escala de valor de intensidade. 
-  def show_kernels_per_channel(self, layers,  kernels_list,  kernels_idx = None, channel_idx = 0, fig_size = (20, 75), ncols = 4):    
+  def show_kernels_per_channel(self, layers,  kernels_list,  kernels_idx = None, channel_idx = 0, scalar_data = False, fig_size = (20, 75), ncols = 4):    
         
       n_layers = len(kernels_list)
       nrows = 64//ncols
@@ -121,11 +134,19 @@ class ExtractResUNetMaps:
           
           plt.figure(figsize = fig_size)
 
+          if scalar_data == True:
+            # Get min and max from set of kernels
+            v_min = kernels_list[layer_idx].min()
+            v_max = kernels_list[layer_idx].max()
+          else:
+            v_min = None
+            v_max = None
+
           for idx in range(qty_maps):
             # Show kernel
             kernel_idx = kernels_idx[idx] 
             fig = plt.subplot(nrows, ncols, idx+1)    
-            ax = plt.imshow(kernels_list[layer_idx][kernel_idx][channel_idx], 'gray')
+            ax = plt.imshow(kernels_list[layer_idx][kernel_idx][channel_idx], vmin = v_min, vmax = v_max, cmap = 'gray')
             layer_path = layers['layer_path'][layer_idx]
             # Plot title
             plt.title(f'Kernel {kernel_idx} - Channel {channel_idx} - {layer_path}')
@@ -142,11 +163,19 @@ class ExtractResUNetMaps:
           
           plt.figure(figsize = fig_size)
 
+          if scalar_data == True:
+            # Get min and max from set of kernels
+            v_min = kernels_list[layer_idx].min()
+            v_max = kernels_list[layer_idx].max()
+          else:
+            v_min = None
+            v_max = None
+
           for idx in range(64):
             # Show kernel
             kernel_idx = idx 
             fig = plt.subplot(nrows, ncols, idx+1)    
-            ax = plt.imshow(kernels_list[layer_idx][kernel_idx][channel_idx], 'gray')
+            ax = plt.imshow(kernels_list[layer_idx][kernel_idx][channel_idx], vmin = v_min, vmax = v_max, cmap = 'gray')
             layer_path = layers['layer_path'][layer_idx]
             # Plot title
             plt.title(f'Kernel {kernel_idx} - Channel {channel_idx} - {layer_path}')
@@ -157,7 +186,7 @@ class ExtractResUNetMaps:
             plt.subplots_adjust(wspace=0.02, hspace=0.0)
             plt.tight_layout() 
 
-  def show_channels_per_kernel(self, layers, kernels_list,  kernel_idx = 0, channels_idx = None, fig_size = (20, 75), ncols = 4):    
+  def show_channels_per_kernel(self, layers, kernels_list,  kernel_idx = 0, channels_idx = None, scalar_data = False, fig_size = (20, 75), ncols = 4):    
       
     n_layers = len(kernels_list)
     nrows = 64//ncols
@@ -170,11 +199,19 @@ class ExtractResUNetMaps:
         
         plt.figure(figsize = fig_size)
 
+        if scalar_data == True:
+          # Get min and max from set of kernels
+          v_min = kernels_list[layer_idx].min()
+          v_max = kernels_list[layer_idx].max()
+        else:
+          v_min = None
+          v_max = None
+
         for idx in range(qty_channel):
           # Show kernel
           channel_idx = channels_idx[idx] 
           fig = plt.subplot(nrows, ncols, idx+1)    
-          ax = plt.imshow(kernels_list[layer_idx][kernel_idx][channel_idx], 'gray')
+          ax = plt.imshow(kernels_list[layer_idx][kernel_idx][channel_idx], vmax = v_max, cmap = 'gray')
           layer_path = layers['layer_path'][layer_idx]
           # Plot title
           plt.title(f'Kernel {kernel_idx} - Channel {channel_idx} - {layer_path}')
@@ -191,11 +228,19 @@ class ExtractResUNetMaps:
         
         plt.figure(figsize = fig_size)
 
+        if scalar_data == True:
+            # Get min and max from set of kernels
+            v_min = kernels_list[layer_idx].min()
+            v_max = kernels_list[layer_idx].max()
+        else:
+          v_min = None
+          v_max = None
+
         for idx in range(64):
           # Show kernel
           channel_idx = idx 
           fig = plt.subplot(nrows, ncols, idx+1)    
-          ax = plt.imshow(kernels_list[layer_idx][kernel_idx][channel_idx], 'gray')
+          ax = plt.imshow(kernels_list[layer_idx][kernel_idx][channel_idx], vmax = v_max, cmap = 'gray')
           layer_path = layers['layer_path'][layer_idx]
           # Plot title
           plt.title(f'Kernel {kernel_idx} - Channel {channel_idx} - {layer_path}')
@@ -205,3 +250,4 @@ class ExtractResUNetMaps:
           # Adjust space between plots
           plt.subplots_adjust(wspace=0.02, hspace=0.0)
           plt.tight_layout()
+
