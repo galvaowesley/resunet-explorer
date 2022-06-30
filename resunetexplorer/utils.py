@@ -6,6 +6,8 @@ from torch.nn.functional import interpolate
 from torch.functional import F
 from torch.nn.functional import avg_pool2d
 
+import torchvision.transforms as T
+
 from collections import OrderedDict
 import functools
 import scipy
@@ -204,3 +206,30 @@ def feature_maps_masking(layer_feature_maps, mask):
   feature_maps_masked = layer_feature_maps*mask
 
   return feature_maps_masked
+
+def crop_feature_maps(layers_fm_list, top, left, height = 128, width = 128):
+  """Given a list of feature maps, it is cropped at specified location and output. 
+    Returns a list of cropped feature maps. 
+
+    It uses torchvision.transforms.functional.crop() function by PyTorch. 
+
+    If the image is torch Tensor, it is expected
+    to have [..., H, W] shape, where ... means an arbitrary number of leading dimensions.
+    If image size is smaller than output size along any edge, image is padded with 0 and then cropped.
+
+    Parameters
+    ----------
+        layers_fm_list (PIL Image or Tensor): A list of feature maps to be cropped. (0,0) denotes the top left corner of the image.
+        top (int): Vertical component of the top left corner of the crop box.
+        left (int): Horizontal component of the top left corner of the crop box.
+        height (int): Height of the crop box.
+        width (int): Width of the crop box.
+
+    Returns:
+        List of PIL Image or Tensor: Cropped feature maps
+    """
+  cropped_fm_list = []
+  for layer in layers_fm_list:  
+    cropped_fm_list.append(T.functional.crop(layer, top = 200, left = 0, height = height, width = width ))
+  
+  return cropped_fm_list
