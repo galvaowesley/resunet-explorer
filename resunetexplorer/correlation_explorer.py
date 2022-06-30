@@ -76,8 +76,13 @@ class CorrelationExplorer:
           x = x.cuda()
         # Get correlation between two feature maps
         corr = torch.corrcoef(x)[0][1]
-        # Move tensor from GPU to CPU and transform to NumPy
-        corr = corr.cpu().detach().numpy()
+        # Check if tensor is on GPU
+        if corr.is_cuda:
+           # Move tensor from GPU to CPU and transform to NumPy
+          corr = corr.cpu().detach().numpy()
+        else:
+          corr.numpy()
+          
         # Append data to dict
         fm_correlation_dict = {
             layer_1_name+'_fm_id' : map_idx1, 
