@@ -2,7 +2,7 @@ from resunetexplorer.utils import feature_maps_interp, image_sampling, binary_di
 import pandas as pd
 import numpy as np
 import pyprog
-
+import torch
 
 class CorrelationExplorer:
 
@@ -63,13 +63,22 @@ class CorrelationExplorer:
 
 
     for map_idx1 in range(n_maps1):
+      # Reshaping it into a one-dimensional tensor
       layer_1_map_1d = layer_1_fm[map_idx1].flatten()
 
       for map_idx2 in range(n_maps2):   
-        
+        # Ceshaping it into a one-dimensional tensor
         layer_2_map_1d = layer_2_fm[map_idx2].flatten()
-        corr = np.corrcoef(layer_1_map_1d, layer_2_map_1d)[0][1]
-
+        # Concatenate two tensors along a new dimension.
+        x = torch.stack([layer_1_map_1d, layer_2_map_1d])
+        # Move tensor from CPU to GPU
+        if torch.cuda.is_available():
+          x = x.cuda()
+        # Get correlation between two feature maps
+        corr = torch.corrcoef(x)[0][1]
+        # Move tensor from GPU to CPU and transform to NumPy
+        corr = corr.cpu().detach().numpy()
+        # Append data to dict
         fm_correlation_dict = {
             layer_1_name+'_fm_id' : map_idx1, 
             layer_2_name+'_fm_id' : map_idx2,
