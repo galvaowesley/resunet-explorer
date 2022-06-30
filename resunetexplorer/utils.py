@@ -207,7 +207,7 @@ def feature_maps_masking(layer_feature_maps, mask):
 
   return feature_maps_masked
 
-def crop_feature_maps(layers_fm_list, top, left, height = 128, width = 128):
+def crop_feature_maps(layers_fm_list, top = 0, left = 0, height = 128, width = 128):
   """Given a list of feature maps, it is cropped at specified location and output. 
     Returns a list of cropped feature maps. 
 
@@ -230,6 +230,6 @@ def crop_feature_maps(layers_fm_list, top, left, height = 128, width = 128):
     """
   cropped_fm_list = []
   for layer in layers_fm_list:  
-    cropped_fm_list.append(T.functional.crop(layer, top = 200, left = 0, height = height, width = width ))
+    cropped_fm_list.append(T.functional.crop(layer, top = top, left = left, height = height, width = width ))
   
   return cropped_fm_list
