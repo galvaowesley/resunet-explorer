@@ -1,3 +1,4 @@
+from torch._C import LiteScriptModule
 from resunetexplorer.utils import ActivationSampler
 import torch
 import matplotlib.pyplot as plt
@@ -5,12 +6,18 @@ import matplotlib.pyplot as plt
 
 class ExtractResUNetMaps:
 
-  def __init__(self, model, dataset, device):
+  def __init__(self, model, dataset = None, image = None, device = 'cpu'):
+
+    assert (dataset == None and image != None) or (dataset != None and image == None), f'dataset and image cannot both be None or have content. Only use dataset or image.'
+    if image != None:
+      assert type(image) is torch.Tensor, f'Image is not a torch.Tensor type'
+
     self.model = model
     self.dataset = dataset
+    self.image = image
     self.device = device
 
-  def get_feature_maps(self, img_idx, layer):
+  def get_feature_maps(self, layer, img_idx = None):
     """
     Function that receives an image index and a ResUNet layer, send the 
     feature maps of its respective image and layer to CPU and returns the 
@@ -19,21 +26,30 @@ class ExtractResUNetMaps:
      
     sampler = ActivationSampler(layer)
 
-    img, label = self.dataset[img_idx]
-    with torch.no_grad():
-        img = img.to(self.device)[None]
+    if self.image != None: 
+      with torch.no_grad():
+        img = self.image.to(self.device)[None]
         self.model(img);
+    else: 
+      img, label = self.dataset[img_idx]
+      with torch.no_grad():
+          img = img.to(self.device)[None]
+          self.model(img);
         
     layer_feature_maps = sampler().to('cpu')[0]
     
     return layer_feature_maps
 
   # TODO: Descrever a função
-  def get_multiple_feature_maps(self, img_idx, layers):
+  def get_multiple_feature_maps(self, layers, img_idx = None):
     layers_fm_list = []
 
-    for i in range(len(layers)):
-      layers_fm_list.append(self.get_feature_maps(img_idx, layers[i]))
+    if self.image != None: 
+      for i in range(len(layers)):
+        layers_fm_list.append(self.get_feature_maps(layers[i], None))
+    else:
+      for i in range(len(layers)):
+        layers_fm_list.append(self.get_feature_maps(layers[i], img_idx))
 
     return layers_fm_list
   
@@ -52,7 +68,7 @@ class ExtractResUNetMaps:
   
   # TODO: Descrever a função
   # TODO: Caso img_idx = None, então dar a possbilidade do usuário escolher a quantidade de primeiras feature maps a serem impressas. 
-  # TODO: Quando img_idx = None, por algum motivo o mapa 56 não está sendo impresso. 
+  # FIX: Quando img_idx = None, por algum motivo o mapa 56 não está sendo impresso. 
   # TODO: Parâmetro opcional para salvar a figura em determinada extensão em determinado diretório.
   def show_feature_maps(self, layers, layers_fm_list, img_idx = None,  maps_idx = None, scalar_data = False, fig_size = (20, 75), ncols = 4):    
       
