@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 
 class ExtractResUNetMaps:
-
+  # TODO remover a entrada do dataset. A imagem já basta. 
   def __init__(self, model, dataset = None, image = None, device = 'cpu'):
 
     assert (dataset == None and image != None) or (dataset != None and image == None), f'dataset and image cannot both be None or have content. Only use dataset or image.'
