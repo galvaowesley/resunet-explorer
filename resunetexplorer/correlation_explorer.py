@@ -229,7 +229,7 @@ class CorrelationExplorer:
     # Extract layers from model
     layers = erl.get_layers(layers_paths)
     # Initialize ExtractResUNetMaps class
-    erm = ExtractResUNetMaps(model, dataset = None, image = img, device = 'cuda')
+    erm = ExtractResUNetMaps(model, dataset = None, image = img, device = device)
     # Extract feature maps from layers 
     layers_fm_list = erm.get_multiple_feature_maps(layers['layer'])
     # Initialize CorrelationExplorer class
