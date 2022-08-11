@@ -1,10 +1,15 @@
 from resunetexplorer.utils import feature_maps_interp, image_sampling, binary_dilation, feature_maps_masking, get_image_label
+from resunetexplorer.layer_extractor import ExtractResUNetLayers
+from resunetexplorer.maps_extractor import ExtractResUNetMaps
+
 import pandas as pd
 import numpy as np
 import pyprog
 import torch
 import gc # Garbage colector
 import json # DataFrame.to_json
+
+
 
 
 
