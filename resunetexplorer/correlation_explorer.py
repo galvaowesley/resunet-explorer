@@ -199,9 +199,6 @@ class CorrelationExplorer:
       else:
         column =  fm_corr_max_dict[key].columns[1]
 
-      print(f'column: {column}')
-      print(f'key: {key}')
-
       aux = fm_corr_max_dict[key].copy()
       aux[fm_corr_max_dict[key].columns[0]] = aux[fm_corr_max_dict[key].columns[0]].astype('str')
       aux[fm_corr_max_dict[key].columns[1]] = aux[fm_corr_max_dict[key].columns[1]].astype('str')
@@ -229,19 +226,18 @@ class CorrelationExplorer:
     # Extract layers from model
     layers = erl.get_layers(layers_paths)
     # Initialize ExtractResUNetMaps class
-    erm = ExtractResUNetMaps(model, dataset = None, image = img, device = device)
+    erm = ExtractResUNetMaps(model, dataset = None, image = img, device = 'cuda')
     # Extract feature maps from layers 
     layers_fm_list = erm.get_multiple_feature_maps(layers['layer'])
-    # Initialize CorrelationExplorer class
-    cxp = CorrelationExplorer()
+
     # Run pre processing to mask the features maps with dilated image label 
-    masked_fm_dict = cxp.pre_processing(layers, layers_fm_list, img_label, iterations_level = iterations_level)
+    masked_fm_dict = self.pre_processing(layers, layers_fm_list, img_label, iterations_level = iterations_level)
     # Compute correlation between features maps of subsequents layers
-    fm_correlation_dict = cxp.corr_calculation(layers, masked_fm_dict)
+    fm_correlation_dict = self.corr_calculation(layers, masked_fm_dict)
     # Compute the maximum correlation between features maps of subsequents layers
-    fm_corr_max_dict = cxp.get_max_correlations(layers, fm_correlation_dict)
+    fm_corr_max_dict = self.get_max_correlations(layers, fm_correlation_dict)
     # Compute statistics for the most frequently correlated features maps
-    stats_most_freq_corr = cxp.get_correlation_freq(layers, fm_corr_max_dict)
+    stats_most_freq_corr = self.get_correlation_freq(layers, fm_corr_max_dict)
 
     # TODO Verificar se o diretório é válido. 
     if save_path != None:
