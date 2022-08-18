@@ -251,7 +251,8 @@ class CorrelationExplorer:
         for i, key in enumerate(stats_most_freq_corr.keys()):
           stats_most_freq_corr[key].to_json(path_or_buf = f'{save_path}/{key}.json', orient = "index")
       elif file_type == 'csv':
-        stats_most_freq_corr[key].to_csv(path_or_buf = f'{save_path}/{key}.csv', sep=',', index = False)
+        for i, key in enumerate(stats_most_freq_corr.keys()):
+          stats_most_freq_corr[key].to_csv(path_or_buf = f'{save_path}/{key}.csv', sep=',', index = False)
 
 
     return masked_fm_dict, fm_correlation_dict, fm_corr_max_dict, stats_most_freq_corr
