@@ -116,7 +116,7 @@ class CorrelationExplorer:
         if torch.cuda.is_available():
           x = x.cuda()
         # Get correlation between two feature maps
-        corr = torch.corrcoef(x)[0][1]
+        corr = torch.abs(torch.corrcoef(x)[0][1])
         # Check if tensor is on GPU
         if corr.is_cuda:
            # Move tensor from GPU to CPU and transform to NumPy
