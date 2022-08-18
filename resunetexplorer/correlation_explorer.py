@@ -223,7 +223,17 @@ class CorrelationExplorer:
     return stats_most_freq_corr
 
   # TODO: documentar a função
-  def correlation_pipeline(self, img, img_label, img_idx, layers_paths, model, save_path = None, file_type = 'csv',  iterations_level = 7,  device = 'cuda'):
+  def correlation_pipeline(self, 
+                            img, 
+                            img_label, 
+                            img_idx, 
+                            layers_paths, 
+                            model, 
+                            save_path = None, 
+                            file_type = 'csv',  
+                            iterations_level = 7,  
+                            device = 'cuda', 
+                            memory_cleaning = False):
     '''
     '''
     # Initialize ExtractResUNetLayers class
@@ -253,6 +263,13 @@ class CorrelationExplorer:
       elif file_type == 'csv':
         for i, key in enumerate(stats_most_freq_corr.keys()):
           stats_most_freq_corr[key].to_csv(path_or_buf = f'{save_path}/{key}.csv', sep=',', index = False)
+  
+    # Memory cleaning
+    if memory_cleaning == True:
+      del layers_fm_list
+      del masked_fm_dict
+      gc.collect()
+      torch.cuda.empty_cache()      
 
 
     return masked_fm_dict, fm_correlation_dict, fm_corr_max_dict, stats_most_freq_corr
