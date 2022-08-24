@@ -89,9 +89,8 @@ class CorrelationExplorer:
 
     return masked_fm_dict
 
-  # TODO: documentar a função
+    # TODO: documentar a função
   def feature_maps_correlation(self, layer_1_fm, layer_2_fm, layer_1_name, layer_2_name, n_maps1, n_maps2):
-
   
     fm_correlation = pd.DataFrame(columns=(layer_1_name+'_fm_id', layer_2_name+'_fm_id', 'correlation'))
 
@@ -105,44 +104,48 @@ class CorrelationExplorer:
 
     for map_idx1 in range(n_maps1):
       # Reshaping it into a one-dimensional tensor
-      layer_2_map_1d = layer_2_fm[map_idx2].flatten()
-      
-      # Calculate standard deviation of both feature maps
-      std_fm_1 = layer_1_map_1d.std()
-      std_fm_2 = layer_2_map_1d.std()
+      layer_1_map_1d = layer_1_fm[map_idx1].flatten()
 
-      # Treatment to avoid NaN correlations.
-      if (std_fm_1 == 0) and (std_fm_2 == 0):
-        corr = 1.0
-      elif ((std_fm_1 != 0) and (std_fm_2 == 0)) or ((std_fm_1 == 0) and (std_fm_2 != 0)):
-        corr = 0.0
-      else:
-        # Concatenate two tensors along a new dimension.
-        x = torch.stack([layer_1_map_1d, layer_2_map_1d])
-        # Move tensor from CPU to GPU
-        if torch.cuda.is_available():
-          x = x.cuda()
-        # Get correlation between two feature maps
-        corr = torch.abs(torch.corrcoef(x)[0][1])
-        # Check if tensor is on GPU
-        if corr.is_cuda:
-          # Move tensor from GPU to CPU and transform to NumPy
-          corr = corr.cpu().detach().numpy()
-        else:
-          corr.numpy()
+      for map_idx2 in range(n_maps2):   
+        # Reshaping it into a one-dimensional tensor
+        layer_2_map_1d = layer_2_fm[map_idx2].flatten()
         
-      # Append data to dict
-      fm_correlation_dict = {
-          layer_1_name+'_fm_id' : map_idx1, 
-          layer_2_name+'_fm_id' : map_idx2,
-          'correlation'         : corr
+        # Calculate standard deviation of both feature maps
+        std_fm_1 = layer_1_map_1d.std()
+        std_fm_2 = layer_2_map_1d.std()
 
-      }
+        # Treatment to avoid NaN correlations.
+        if (std_fm_1 == 0) and (std_fm_2 == 0):
+          corr = 1.0
+        elif ((std_fm_1 != 0) and (std_fm_2 == 0)) or ((std_fm_1 == 0) and (std_fm_2 != 0)):
+          corr = 0.0
+        else:
+          # Concatenate two tensors along a new dimension.
+          x = torch.stack([layer_1_map_1d, layer_2_map_1d])
+          # Move tensor from CPU to GPU
+          if torch.cuda.is_available():
+            x = x.cuda()
+          # Get correlation between two feature maps
+          corr = torch.abs(torch.corrcoef(x)[0][1])
+          # Check if tensor is on GPU
+          if corr.is_cuda:
+            # Move tensor from GPU to CPU and transform to NumPy
+            corr = corr.cpu().detach().numpy()
+          else:
+            corr.numpy()
+          
+        # Append data to dict
+        fm_correlation_dict = {
+            layer_1_name+'_fm_id' : map_idx1, 
+            layer_2_name+'_fm_id' : map_idx2,
+            'correlation'         : corr
 
-      # Convert the dict to dataframe
-      df_result = pd.DataFrame([fm_correlation_dict])
-      # Concact df_result with similarity_metrics to append new row
-      fm_correlation = pd.concat([fm_correlation, df_result])
+        }
+
+        # Convert the dict to dataframe
+        df_result = pd.DataFrame([fm_correlation_dict])
+        # Concact df_result with similarity_metrics to append new row
+        fm_correlation = pd.concat([fm_correlation, df_result])
         
       # Set current status
       prog.set_stat(map_idx1 + 1)
