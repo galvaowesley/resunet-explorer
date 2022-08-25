@@ -279,7 +279,6 @@ class CorrelationExplorer:
       del layers_fm_list
       del masked_fm_dict
       gc.collect()
-      torch.cuda.empty_cache()      
-
-
-    return masked_fm_dict, fm_correlation_dict, fm_corr_max_dict, stats_most_freq_corr
+      torch.cuda.empty_cache()
+    else:
+      return masked_fm_dict, fm_correlation_dict, fm_corr_max_dict, stats_most_freq_corr
