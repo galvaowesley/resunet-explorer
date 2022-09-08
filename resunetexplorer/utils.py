@@ -233,3 +233,7 @@ def crop_feature_maps(layers_fm_list, top = 0, left = 0, height = 128, width = 1
     cropped_fm_list.append(T.functional.crop(layer, top = top, left = left, height = height, width = width ))
   
   return cropped_fm_list
+
+def remove_prefix(text, prefix):
+  '''Remove the prefix from the text, given a substring pattern'''
+    return text[text.startswith(prefix) and len(prefix):]
