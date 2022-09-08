@@ -1,4 +1,4 @@
-from resunetexplorer.utils import feature_maps_interp, image_sampling, binary_dilation, feature_maps_masking, get_image_label
+from resunetexplorer.utils import feature_maps_interp, image_sampling, binary_dilation, feature_maps_masking, get_image_label, remove_prefix
 from resunetexplorer.layer_extractor import ExtractResUNetLayers
 from resunetexplorer.maps_extractor import ExtractResUNetMaps
 
@@ -8,9 +8,6 @@ import pyprog
 import torch
 import gc # Garbage colector
 import json # DataFrame.to_json
-
-
-
 
 
 class CorrelationExplorer:
@@ -114,12 +111,24 @@ class CorrelationExplorer:
         std_fm_1 = layer_1_map_1d.std()
         std_fm_2 = layer_2_map_1d.std()
 
+        # TODO: trocar o 0 por um valor muito pequeno (eps), tipo 1e-10.  
         # Treatment to avoid NaN correlations.
-        if (std_fm_1 == 0) and (std_fm_2 == 0):
+        if (std_fm_1 < 1e-10) and (std_fm_2 < 1e-10):
           corr = 1.0
-        elif ((std_fm_1 != 0) and (std_fm_2 == 0)) or ((std_fm_1 == 0) and (std_fm_2 != 0)):
+          # Flag that indicates whether the feature map is mostly composed of zero values. If std_fm < 1e-10, then zero_flag_fm = 1.
+          zero_flag_fm_1 = 1
+          zero_flag_fm_2 = 1
+        elif (std_fm_1 < 1e-10) and (std_fm_2 >= 1e-10):
           corr = 0.0
+          zero_flag_fm_1 = 1
+          zero_flag_fm_2 = 0
+        elif (std_fm_1 >= 1e-10) and (std_fm_2 < 1e-10): 
+          corr = 0.0
+          zero_flag_fm_1 = 0
+          zero_flag_fm_2 = 1
         else:
+          zero_flag_fm_1 = 0
+          zero_flag_fm_2 = 0
           # Concatenate two tensors along a new dimension.
           x = torch.stack([layer_1_map_1d, layer_2_map_1d])
           # Move tensor from CPU to GPU
@@ -133,12 +142,15 @@ class CorrelationExplorer:
             corr = corr.cpu().detach().numpy()
           else:
             corr.numpy()
-          
+        
+        # TODO: Mais uma coluna indicando se o valor do mapa é 0. 
         # Append data to dict
         fm_correlation_dict = {
             layer_1_name+'_fm_id' : map_idx1, 
             layer_2_name+'_fm_id' : map_idx2,
-            'correlation'         : corr
+            'correlation'         : corr,
+            layer_1_name+'_zero_flag': zero_flag_fm_1,
+            layer_2_name+'_zero_flag': zero_flag_fm_2,
 
         }
 
@@ -269,9 +281,23 @@ class CorrelationExplorer:
       # Save stats_most_freq_corr's dataframes as json or CSV
       if file_type == 'json':
         for i, key in enumerate(stats_most_freq_corr.keys()):
+          # Export fm_correlation_dict
+          file_name = remove_prefix(key, 'freq_max_')
+          fm_correlation_dict[file_name].to_json(path_or_buf = f'{save_path}/{file_name}.json', orient = "index")
+          # Export fm_corr_max_dict
+          file_name = remove_prefix(key, 'freq_')
+          fm_corr_max_dict[file_name].to_json(path_or_buf = f'{save_path}/{file_name}.json', orient = "index")
+          # Export stats_most_freq_corr
           stats_most_freq_corr[key].to_json(path_or_buf = f'{save_path}/{key}.json', orient = "index")
       elif file_type == 'csv':
         for i, key in enumerate(stats_most_freq_corr.keys()):
+          # Export fm_correlation_dict
+          file_name = remove_prefix(key, 'freq_max_')
+          fm_correlation_dict[file_name].to_csv(path_or_buf = f'{save_path}/{file_name}.csv', sep=',', index = False)
+          # Export fm_corr_max_dict
+          file_name = remove_prefix(key, 'freq_')
+          fm_corr_max_dict[file_name].to_csv(path_or_buf = f'{save_path}/{file_name}.csv', sep=',', index = False)
+          # Export stats_most_freq_corr
           stats_most_freq_corr[key].to_csv(path_or_buf = f'{save_path}/{key}.csv', sep=',', index = False)
   
     # Memory cleaning
@@ -282,3 +308,4 @@ class CorrelationExplorer:
       torch.cuda.empty_cache()
     else:
       return masked_fm_dict, fm_correlation_dict, fm_corr_max_dict, stats_most_freq_corr
+    
