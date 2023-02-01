@@ -200,7 +200,6 @@ class CorrelationExplorer:
   def correlation_pipeline(
                 self, 
                 img, 
-                img_idx, 
                 layers_list1,
                 layers_list2, 
                 model1,
@@ -223,8 +222,8 @@ class CorrelationExplorer:
     layers_metadata_model2 = erl_model2.get_layers(layers_list2)    
     
     # Initialize ExtractResUNetMaps 
-    erm_model1 = ExtractResUNetMaps(model1,  dataset = None, image = img, device = 'cuda')
-    erm_model2 = ExtractResUNetMaps(model2,  dataset = None, image = img, device = 'cuda')
+    erm_model1 = ExtractResUNetMaps(model1, dataset = None, image = img, device = device)
+    erm_model2 = ExtractResUNetMaps(model2, dataset = None, image = img, device = device)
     
     # Extract feature maps from layers 
     fm_list_model1 = erm_model1.get_multiple_feature_maps(layers_metadata_model1['layer'])
