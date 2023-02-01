@@ -233,8 +233,8 @@ class CorrelationExplorer:
     fm_corr_dict = self.corr_calculation(
         model1_name=model1_name, 
         model2_name=model2_name, 
-        layers_metadata_model1=layers_metadata_model1, 
-        layers_metadata_model2=layers_metadata_model2, 
+        layers_metadata1=layers_metadata_model1, 
+        layers_metadata2=layers_metadata_model2, 
         feature_list_model1=fm_list_model1, 
         feature_list_model2=fm_list_model2
     )
