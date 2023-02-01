@@ -270,9 +270,8 @@ class CorrelationExplorer:
     # Memory cleaning
     if memory_cleaning == True:
       del layers_fm_list
-      del masked_fm_dict
       gc.collect()
       torch.cuda.empty_cache()
     else:
-      return masked_fm_dict, fm_corr_dict, fm_corr_max_dict, stats_most_freq_corr
+      return fm_corr_dict, fm_corr_max_dict, stats_most_freq_corr
     
