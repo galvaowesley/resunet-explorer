@@ -107,14 +107,14 @@ class CorrelationExplorer:
             feature_list_model1, 
             feature_list_model2
   ):
+    
+    # A dict to store DataFrames of feature maps correlations 
+    fm_corr_dict = {}
 
     for idx1, layer_path1 in enumerate(layers_metadata1['layer_path']):
 
       layer1_name = model1_name + layer_path1
-      n_maps1 = layers_metadata1['n_maps'][idx1]
-
-      # A dict to store DataFrames of feature maps correlations 
-      fm_corr_dict = {}
+      n_maps1 = layers_metadata1['n_maps'][idx1]      
 
       for idx2, layer_path2 in enumerate(layers_metadata2['layer_path']):
 
