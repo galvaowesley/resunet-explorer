@@ -272,7 +272,7 @@ class CorrelationExplorer:
     if save_path != None:
       # Save stats_max_corr's dataframes as json or CSV
       if file_type == 'json':
-        for i, key in enumerate(stats_max_corr.keys()):   
+        for (key1, key2, key3, key4, key5) in zip(fm_corr_dict.keys(), fm_corr_max_dict.keys(), fm_corr_min_dict.keys(), stats_max_corr.keys(), stats_min_corr.keys()):
           # Export fm_corr_dict
           fm_corr_dict[key1].to_json(path_or_buf = f'{save_path}/{key1}.json', orient = "index")
           # Export fm_corr_max_dict and fm_corr_min_dict      
