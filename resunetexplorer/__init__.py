@@ -1,1 +1,1 @@
-from . import layer_extractor, maps_extractor, correlation_explorer, utils
+from . import layer_extractor, maps_extractor, correlation_explorer, correlation_explorer_v2, utils

@@ -86,7 +86,7 @@ class CorrelationExplorer:
 
     return masked_fm_dict
 
-    # TODO: documentar a função
+  # TODO: documentar a função
   def feature_maps_correlation(self, layer_1_fm, layer_2_fm, layer_1_name, layer_2_name, n_maps1, n_maps2):
   
     fm_correlation = pd.DataFrame(columns=(layer_1_name+'_fm_id', layer_2_name+'_fm_id', 'correlation'))
@@ -111,7 +111,6 @@ class CorrelationExplorer:
         std_fm_1 = layer_1_map_1d.std()
         std_fm_2 = layer_2_map_1d.std()
 
-        # TODO: trocar o 0 por um valor muito pequeno (eps), tipo 1e-10.  
         # Treatment to avoid NaN correlations.
         if (std_fm_1 < 1e-10) and (std_fm_2 < 1e-10):
           corr = 1.0
@@ -142,8 +141,7 @@ class CorrelationExplorer:
             corr = corr.cpu().detach().numpy()
           else:
             corr.numpy()
-        
-        # TODO: Mais uma coluna indicando se o valor do mapa é 0. 
+      
         # Append data to dict
         fm_correlation_dict = {
             layer_1_name+'_fm_id' : map_idx1, 
