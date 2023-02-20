@@ -41,11 +41,10 @@ class ExtractResUNetLayers:
               Contains the paths to respective layers e.g. ['encoder.resblock1', 'encoder.resblock2', ...]
         """
         model_metadata = {
+            "model_name": self.model_name,
             "layer_path": [],
             "n_maps": [],
             "layer": [],
-            "model_name": self.model_name
-
         }
 
         for i, path in enumerate(layers_paths):
