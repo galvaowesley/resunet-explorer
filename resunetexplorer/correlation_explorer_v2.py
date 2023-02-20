@@ -11,6 +11,19 @@ import gc  # Garbage colector
 import json  # DataFrame.to_json
 
 
+def check_models_name(model1_name, model2_name):
+    """Function to check if the names of the models are the same.
+    """
+    if model1_name == model2_name:
+        model1_name = model1_name + '(1)'
+        model2_name = model2_name + '(2)'
+    else:
+        model1_name
+        model2_name
+
+    return model1_name, model2_name
+
+
 class CorrelationExplorer:
 
     def check_if_map_is_zero(
@@ -141,9 +154,7 @@ class CorrelationExplorer:
                     corr = self.pearson_correlation(layer_1_map_1d, layer_2_map_1d)
 
                 # Rename models if they have the same name
-                if model1_name == model2_name:
-                    model1_name = model1_name + '(1)'
-                    model2_name = model2_name + '(2)'
+                model1_name, model2_name = check_models_name(model1_name, model2_name)
 
                 # Append data to dict
                 fm_correlation.append({
@@ -174,8 +185,6 @@ class CorrelationExplorer:
 
     def multiple_feature_maps_correlation(
             self,
-            model1_name,
-            model2_name,
             layers_metadata1,
             layers_metadata2,
             feature_list_model1,
@@ -184,6 +193,8 @@ class CorrelationExplorer:
 
         # A dict to store DataFrames of feature maps correlations
         fm_corr_dict = {}
+        model1_name = layers_metadata1['model_name']
+        model2_name = layers_metadata2['model_name']
 
         for idx1, layer_name1 in enumerate(layers_metadata1['layer_path']):
             n_maps1 = layers_metadata1['n_maps'][idx1]
@@ -241,13 +252,22 @@ class CorrelationExplorer:
 
         for i, key in enumerate(fm_corr_dict.keys()):
 
+            first_column = fm_corr_dict[key].columns[0]
+            second_column = fm_corr_dict[key].columns[1]
+
             if layers_metadata1['n_maps'][0] >= layers_metadata2['n_maps'][0]:
-                column_groupby = fm_corr_dict[key].columns[0]
+                column_groupby = first_column
             else:
-                column_groupby = fm_corr_dict[key].columns[1]
+                column_groupby = second_column
+
+            if fm_corr_max_dict['layer_path'][i] == layers_metadata2['layer_path'][i]:
+                fm_corr_dict[key].query('correlation != 1.0 and (first_column != second_column)', inplace=True)
 
             fm_corr_max_dict[f'max_{key}'] = fm_corr_dict[key].loc[
-                fm_corr_dict[key].astype(float).groupby(column_groupby)['correlation'].idxmax()].reset_index(drop=True)
+                fm_corr_dict[key].astype(float)
+                .groupby(column_groupby)['correlation']
+                .idxmax()
+            ].reset_index(drop=True)
 
         return fm_corr_max_dict
 
