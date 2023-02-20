@@ -324,8 +324,6 @@ class CorrelationExplorer:
             layers_list2,
             model1,
             model2,
-            model1_name,
-            model2_name,
             save_path=None,
             file_type='csv',
             device='cuda',
@@ -351,8 +349,6 @@ class CorrelationExplorer:
 
         # Compute correlation between features maps of two models
         fm_corr_dict = self.multiple_feature_maps_correlation(
-            model1_name=model1_name,
-            model2_name=model2_name,
             layers_metadata1=layers_metadata_model1,
             layers_metadata2=layers_metadata_model2,
             feature_list_model1=fm_list_model1,
