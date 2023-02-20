@@ -64,7 +64,6 @@ class CorrelationExplorer:
 
         return corr
 
-    # TODO: documentar a função
     def feature_maps_correlation(
             self,
             model1_name: str,
@@ -76,14 +75,44 @@ class CorrelationExplorer:
             n_maps1: int,
             n_maps2: int
     ):
+        """Function to compute the correlation between feature maps of two layers from different models.
 
+        Parameters:
+        -----------
+        model1_name : str
+            Name of the first model.
+        model2_name : str
+            Name of the second model.
+        model1_layer_name : str
+            Name of the layer of the first model to compute the feature maps correlation.
+        model2_layer_name : str
+            Name of the layer of the second model to compute the feature maps correlation.
+        model1_feature_map : torch.Tensor
+            3D tensor with shape (batch_size, height, width) containing the feature maps of the chosen layer
+            from the first model.
+        model2_feature_map : torch.Tensor
+            3D tensor with shape (batch_size, height, width) containing the feature maps of the chosen layer
+            from the second model.
+        n_maps1 : int
+            Number of feature maps of the chosen layer from the first model.
+        n_maps2 : int
+            Number of feature maps of the chosen layer from the second model.
+
+        Returns:
+        --------
+        pandas.DataFrame
+        Dataframe containing the correlation values between each pair of feature maps, along with metadata such
+        as the ids and names of the models and layers, and flags indicating if any of the feature maps contain only
+        zeros.
+
+        """
         fm_correlation = []
 
         # Create Object to progress bar
         prog = pyprog.ProgressBar(" ", "", n_maps1)
         # Print Task name
         print(
-            f"""Computing feature maps correlation: {model1_name+'_'+model1_layer_name} - {model2_name+'_'+model2_layer_name} \n"""
+            f"""Computing feature maps correlation: {model1_name + '_' + model1_layer_name} - {model2_name + '_' + model2_layer_name} \n"""
         )
         # Update Progress Bar
         prog.update()
