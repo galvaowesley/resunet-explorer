@@ -10,7 +10,6 @@ import torch
 import gc  # Garbage colector
 import json  # DataFrame.to_json
 
-
 class CorrelationExplorer:
 
   def check_if_map_is_zero(
@@ -132,7 +131,7 @@ class CorrelationExplorer:
 
       return fm_correlation
 
-  def corr_calculation(
+  def multiple_feature_maps_correlation(
           self,
           model1_name,
           model2_name,
@@ -167,6 +166,28 @@ class CorrelationExplorer:
       return fm_corr_dict
 
   # TODO: documentar a função
+  def get_min_correlations(
+          self,
+          layers_metadata1,
+          layers_metadata2,
+          fm_corr_dict
+  ):
+      """Get the min correlation between two differents sets of feature maps.
+      """
+      fm_corr_min_dict = {}
+      for i, key in enumerate(fm_corr_dict.keys()):
+
+          if layers_metadata1['n_maps'][0] >= layers_metadata2['n_maps'][0]:
+              column_groupby = fm_corr_dict[key].columns[0]
+          else:
+              column_groupby = fm_corr_dict[key].columns[1]
+
+          fm_corr_min_dict[f'min_{key}'] = fm_corr_dict[key].loc[
+              fm_corr_dict[key].astype(float).groupby(column_groupby)['correlation'].idxmin()].reset_index(drop=True)
+
+      return fm_corr_min_dict
+
+  # TODO: documentar a função
   def get_max_correlations(
           self,
           layers_metadata1,
@@ -189,28 +210,6 @@ class CorrelationExplorer:
               fm_corr_dict[key].astype(float).groupby(column_groupby)['correlation'].idxmax()].reset_index(drop=True)
 
       return fm_corr_max_dict
-
-  # TODO: documentar a função
-  def get_min_correlations(
-          self,
-          layers_metadata1,
-          layers_metadata2,
-          fm_corr_dict
-  ):
-      """Get the min correlation between two differents sets of feature maps.
-      """
-      fm_corr_min_dict = {}
-      for i, key in enumerate(fm_corr_dict.keys()):
-
-          if layers_metadata1['n_maps'][0] >= layers_metadata2['n_maps'][0]:
-              column_groupby = fm_corr_dict[key].columns[0]
-          else:
-              column_groupby = fm_corr_dict[key].columns[1]
-
-          fm_corr_min_dict[f'min_{key}'] = fm_corr_dict[key].loc[
-              fm_corr_dict[key].astype(float).groupby(column_groupby)['correlation'].idxmin()].reset_index(drop=True)
-
-      return fm_corr_min_dict
 
   # TODO: documentar a função
   def get_correlation_stats(
@@ -289,7 +288,7 @@ class CorrelationExplorer:
       fm_list_model2 = erm_model2.get_multiple_feature_maps(layers_metadata_model2['layer'])
 
       # Compute correlation between features maps of two models
-      fm_corr_dict = self.corr_calculation(
+      fm_corr_dict = self.multiple_feature_maps_correlation(
           model1_name=model1_name,
           model2_name=model2_name,
           layers_metadata1=layers_metadata_model1,
