@@ -15,7 +15,7 @@ class ExtractResUNetLayers:
     def __init__(
             self,
             model,
-            model_name: str = ""
+            model_name: str = None
     ):
         self.model = model
         self.model_name = model_name
