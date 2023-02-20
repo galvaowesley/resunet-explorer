@@ -140,6 +140,11 @@ class CorrelationExplorer:
                     # Calculate Pearson correlation between two feature maps
                     corr = self.pearson_correlation(layer_1_map_1d, layer_2_map_1d)
 
+                # Rename models if they have the same name
+                if model1_name == model2_name:
+                    model1_name = model1_name + '(1)'
+                    model2_name = model2_name + '(2)'
+
                 # Append data to dict
                 fm_correlation.append({
                     model1_name + '_fm_id': map_idx1,
