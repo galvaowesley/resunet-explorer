@@ -196,7 +196,7 @@ class CorrelationExplorer:
     ):
 
         # A dict to store DataFrames of feature maps correlations
-        fm_corr_dict = {}
+        feature_maps_corr, feature_maps_corr_dict = [], {}
         model1_name = layers_metadata1['model_name']
         model2_name = layers_metadata2['model_name']
 
@@ -206,7 +206,7 @@ class CorrelationExplorer:
             for idx2, layer_name2 in enumerate(layers_metadata2['layer_path']):
                 n_maps2 = layers_metadata2['n_maps'][idx2]
 
-                fm_corr_dict[
+                feature_maps_corr_dict[
                     f'{model1_name}_{model2_name}_{layer_name1}_{layer_name2}'] = self.feature_maps_correlation(
                     model1_name=model1_name,
                     model2_name=model2_name,
@@ -218,7 +218,9 @@ class CorrelationExplorer:
                     n_maps2=n_maps2
                 )
 
-        return fm_corr_dict
+                feature_maps_corr.append(feature_maps_corr_dict[f'{model1_name}_{model2_name}_{layer_name1}_{layer_name2}'])
+
+        return feature_maps_corr, feature_maps_corr_dict
 
     def get_min_correlations(
             self,
@@ -451,6 +453,8 @@ class CorrelationExplorer:
             layers_list2,
             model1,
             model2,
+            model1_name,
+            model2_name,
             same_model=False,
             min_corr_threshold=0.0,
             max_corr_threshold=1.0,
@@ -462,20 +466,20 @@ class CorrelationExplorer:
         """
       """
         # Initialize ExtractResUNetLayers class
-        erl_model1 = ExtractResUNetLayers(model1)
-        erl_model2 = ExtractResUNetLayers(model2)
+        erl_model1 = ExtractResUNetLayers(model=model1, model_name=model1_name)
+        erl_model2 = ExtractResUNetLayers(model=model2, model_name=model2_name)
 
         # Get layers metadata from model
-        layers_metadata_model1 = erl_model1.get_layers(layers_list1)
-        layers_metadata_model2 = erl_model2.get_layers(layers_list2)
+        layers_metadata_model1 = erl_model1.get_layers(layers_paths=layers_list1)
+        layers_metadata_model2 = erl_model2.get_layers(layers_paths=layers_list2)
 
         # Initialize ExtractResUNetMaps
-        erm_model1 = ExtractResUNetMaps(model1, dataset=None, image=img, device=device)
-        erm_model2 = ExtractResUNetMaps(model2, dataset=None, image=img, device=device)
+        erm_model1 = ExtractResUNetMaps(model=model1, dataset=None, image=img, device=device)
+        erm_model2 = ExtractResUNetMaps(model=model2, dataset=None, image=img, device=device)
 
         # Extract feature maps from layers
-        fm_list_model1 = erm_model1.get_multiple_feature_maps(layers_metadata_model1['layer'])
-        fm_list_model2 = erm_model2.get_multiple_feature_maps(layers_metadata_model2['layer'])
+        fm_list_model1 = erm_model1.get_multiple_feature_maps(layers=layers_metadata_model1['layer'])
+        fm_list_model2 = erm_model2.get_multiple_feature_maps(layers=layers_metadata_model2['layer'])
 
         # Compute correlation between features maps of two models
         fm_corr_dict = self.multiple_feature_maps_correlation(
@@ -547,3 +551,6 @@ class CorrelationExplorer:
             torch.cuda.empty_cache()
         else:
             return fm_corr_dict, max_fm_corr_dict, min_fm_corr_dict, stats_max_corr_dict, stats_min_corr_dict
+
+
+
