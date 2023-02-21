@@ -1,3 +1,7 @@
+from typing import Tuple, Union, Any, Dict
+
+from pandas import Series, DataFrame
+
 from resunetexplorer.utils import feature_maps_interp, image_sampling, binary_dilation, feature_maps_masking, \
     get_image_label, remove_prefix
 from resunetexplorer.layer_extractor import ExtractResUNetLayers
@@ -221,8 +225,8 @@ class CorrelationExplorer:
             layers_metadata1: dict,
             layers_metadata2: dict,
             feature_maps_corr_dict: dict,
-            threshold: float = 0.0
-    ) -> pd.DataFrame:
+            max_corr_threshold: float = 1.0
+    ) -> tuple[Union[Union[Series, DataFrame], Any], dict[str, Any]]:
         """Obtains the minimum correlation among all combinations of correlations between the feature maps of two models,
         given the metadata of two observed layers, and a dictionary with DataFrames that represent the correlation
         between the feature maps of the two models.
@@ -242,8 +246,8 @@ class CorrelationExplorer:
             Each key of the dictionary should represent a unique pair of layers, and each DataFrame should have the following
             columns: 'model1_fm_id', 'model2_fm_id', 'correlation', 'model1_layer_name', 'model2_layer_name'.
 
-        threshold: float (default 0.0)
-            A threshold to filter the feature maps that have a correlation value greater or equal this value.
+        max_corr_threshold: float (default 0.0)
+            A threshold to filter the feature maps that have a correlation value less or equal this value.
 
         same_models: bool (default False)
             A boolean flag that indicates whether the two layers belong to the same model. If True, the function will not
@@ -257,7 +261,7 @@ class CorrelationExplorer:
             'model1_layer_name', 'model2_layer_name'.
         """
 
-        min_feature_maps_corr = []
+        min_feature_maps_corr, min_feature_maps_dict = [], {}
 
         for i, key in enumerate(feature_maps_corr_dict.keys()):
 
@@ -277,7 +281,7 @@ class CorrelationExplorer:
                 column_to_group = model2_fm_id_column
 
             df_aux = feature_maps_corr_dict[key].copy()
-            df_aux = df_aux[df_aux['correlation'] >= threshold]
+            df_aux = df_aux[df_aux['correlation'] <= max_corr_threshold]
 
             # Drop the layer name columns
             df_aux.drop([model1_layer_name_column, model2_layer_name_column], axis=1, inplace=True)
@@ -293,19 +297,20 @@ class CorrelationExplorer:
             df_aux[model2_layer_name_column] = model2_layer_name
 
             min_feature_maps_corr.append(df_aux)
+            min_feature_maps_dict[f'min_{key}'] = df_aux
 
         min_feature_maps_corr = pd.concat(min_feature_maps_corr)
 
-        return min_feature_maps_corr
+        return min_feature_maps_corr, min_feature_maps_dict
 
     def get_max_correlations(
             self,
             layers_metadata1: dict,
             layers_metadata2: dict,
             feature_maps_corr_dict: dict,
-            threshold: float = 0.0,
-            same_models: bool = False
-    ) -> pd.DataFrame:
+            min_corr_threshold: float = 0.0,
+            same_model: bool = False
+    ) -> tuple[Union[Union[Series, DataFrame], Any], dict[str, Any]]:
         """Obtains the maximum correlation among all combinations of correlations between the feature maps of two models,
         given the metadata of two observed layers, and a dictionary with DataFrames that represent the correlation
         between the feature maps of the two models.
@@ -325,10 +330,10 @@ class CorrelationExplorer:
             Each key of the dictionary should represent a unique pair of layers, and each DataFrame should have the following
             columns: 'model1_fm_id', 'model2_fm_id', 'correlation', 'model1_layer_name', 'model2_layer_name'.
 
-        threshold: float (default 0.0)
+        min_corr_threshold: float (default 0.0)
             A threshold to filter the feature maps that have a correlation value greater or equal this value.
 
-        same_models: bool (default False)
+        same_model: bool (default False)
             A boolean flag that indicates whether the two layers belong to the same model. If True, the function will not
             consider the correlation value of same feature maps from the same layer.
 
@@ -340,7 +345,7 @@ class CorrelationExplorer:
             'model1_layer_name', 'model2_layer_name'.
         """
 
-        max_feature_maps_corr = []
+        max_feature_maps_corr, max_feature_maps_corr_dict = [], {}
 
         for i, key in enumerate(feature_maps_corr_dict.keys()):
 
@@ -360,13 +365,13 @@ class CorrelationExplorer:
                 column_to_group = model2_fm_id_column
 
             # Filter to avoid getting the correlation == 1 of the same feature map
-            if same_models:
+            if same_model:
                 df_aux = feature_maps_corr_dict[key].copy()
                 df_aux = df_aux[df_aux[model1_fm_id_column] != df_aux[model2_fm_id_column]]
-                df_aux = df_aux[df_aux['correlation'] >= threshold]
+                df_aux = df_aux[df_aux['correlation'] >= min_corr_threshold]
             else:
                 df_aux = feature_maps_corr_dict[key].copy()
-                df_aux = df_aux[df_aux['correlation'] >= threshold]
+                df_aux = df_aux[df_aux['correlation'] >= min_corr_threshold]
 
                 # Drop the layer name columns
             df_aux.drop([model1_layer_name_column, model2_layer_name_column], axis=1, inplace=True)
@@ -382,17 +387,18 @@ class CorrelationExplorer:
             df_aux[model2_layer_name_column] = model2_layer_name
 
             max_feature_maps_corr.append(df_aux)
+            max_feature_maps_corr_dict[f'max_{key}'] = df_aux
 
         max_feature_maps_corr = pd.concat(max_feature_maps_corr)
 
-        return max_feature_maps_corr
+        return max_feature_maps_corr, max_feature_maps_corr_dict
 
     # TODO: documentar a função
     def get_correlation_stats(
             self,
             layers_metadata1,
             layers_metadata2,
-            fm_corr_max_or_min_dict
+            max_or_fm_corr_dict
     ):
 
         """From the maximum or minimum correlation dict, this function calculates the stats of the most frequent
@@ -402,19 +408,19 @@ class CorrelationExplorer:
         """
         stats_correlation, stats_correlation_dict = [], {}
 
-        for i, key in enumerate(fm_corr_max_or_min_dict.keys()):
+        for i, key in enumerate(max_or_fm_corr_dict.keys()):
 
             if layers_metadata1['n_maps'][0] < layers_metadata2['n_maps'][0]:
-                column_to_group = fm_corr_max_or_min_dict[key].columns[0]
+                column_to_group = max_or_fm_corr_dict[key].columns[0]
                 model_layer = layers_metadata1['model_name'] + '_layer'
                 # TODO Generalizar a obtenção do nmaps para qualquer layer com diferentes nmaps
                 n_maps = layers_metadata1['n_maps'][0]
             else:
-                column_to_group = fm_corr_max_or_min_dict[key].columns[1]
+                column_to_group = max_or_fm_corr_dict[key].columns[1]
                 model_layer = layers_metadata2['model_name'] + '_layer'
                 n_maps = layers_metadata1['n_maps'][0]
 
-            df_aux = fm_corr_max_or_min_dict[key].copy()
+            df_aux = max_or_fm_corr_dict[key].copy()
             pivoted_stats = pd.pivot_table(
                 df_aux,
                 index=[column_to_group, model_layer],
@@ -445,6 +451,9 @@ class CorrelationExplorer:
             layers_list2,
             model1,
             model2,
+            same_model=False,
+            min_corr_threshold=0.0,
+            max_corr_threshold=1.0,
             save_path=None,
             file_type='csv',
             device='cuda',
@@ -476,44 +485,65 @@ class CorrelationExplorer:
             feature_list_model2=fm_list_model2
         )
         # Compute the maximum correlation between features maps of different layers
-        fm_corr_max_dict = self.get_max_correlations(layers_metadata_model1, layers_metadata_model2, fm_corr_dict)
+        max_fm_corr, max_fm_corr_dict = self.get_max_correlations(
+            layers_metadata1=layers_metadata_model1,
+            layers_metadata2=layers_metadata_model2,
+            feature_maps_corr_dict=fm_corr_dict,
+            min_corr_threshold=min_corr_threshold,
+            same_model=same_model
+        )
         # Compute the minimum correlation between features maps of different layers
-        fm_corr_min_dict = self.get_min_correlations(layers_metadata_model1, layers_metadata_model2, fm_corr_dict)
-        # Compute statistics for the most frequently correlated features maps
-        stats_max_corr = self.get_correlation_stats(layers_metadata_model1, layers_metadata_model2, fm_corr_max_dict)
-        stats_min_corr = self.get_correlation_stats(layers_metadata_model1, layers_metadata_model2, fm_corr_min_dict)
+        min_fm_corr, min_fm_corr_dict = self.get_min_correlations(
+            layers_metadata1=layers_metadata_model1,
+            layers_metadata2=layers_metadata_model2,
+            feature_maps_corr_dict=fm_corr_dict,
+            max_corr_threshold=max_corr_threshold
+        )
+        # Compute statistics for the maximum correlations
+        stats_max_corr, stats_max_corr_dict = self.get_correlation_stats(
+            layers_metadata1=layers_metadata_model1,
+            layers_metadata2=layers_metadata_model2,
+            max_or_fm_corr_dict=max_fm_corr_dict
+        )
+        # Compute statistics for the minimum correlations
+        stats_min_corr, stats_min_corr_dict = self.get_correlation_stats(
+            layers_metadata1=layers_metadata_model1,
+            layers_metadata2=layers_metadata_model2,
+            max_or_fm_corr_dict=min_fm_corr_dict
+        )
 
         # TODO Verificar se o diretório é válido.
         if save_path is not None:
-            # Save stats_max_corr's dataframes as json or CSV
+            # Save stats_max_corr_dict's dataframes as json or CSV
             if file_type == 'json':
-                for (key1, key2, key3, key4, key5) in zip(fm_corr_dict.keys(), fm_corr_max_dict.keys(),
-                                                          fm_corr_min_dict.keys(), stats_max_corr.keys(),
-                                                          stats_min_corr.keys()):
+                for (key1, key2, key3, key4, key5) in zip(fm_corr_dict.keys(), max_fm_corr_dict.keys(),
+                                                          min_fm_corr_dict.keys(), stats_max_corr_dict.keys(),
+                                                          stats_min_corr_dict.keys()):
                     # Export fm_corr_dict
                     fm_corr_dict[key1].to_json(path_or_buf=f'{save_path}/{key1}.json', orient="index")
-                    # Export fm_corr_max_dict and fm_corr_min_dict
-                    fm_corr_max_dict[key2].to_json(path_or_buf=f'{save_path}/{key2}.json', orient="index")
-                    fm_corr_min_dict[key3].to_json(path_or_buf=f'{save_path}/{key3}.json', orient="index")
-                    # Export stats_max_corr and stats_min_corr
-                    stats_max_corr[key4].to_json(path_or_buf=f'{save_path}/{key4}.json', orient="index")
-                    stats_min_corr[key5].to_json(path_or_buf=f'{save_path}/{key5}.json', orient="index")
+                    # Export max_fm_corr_dict and min_fm_corr_dict
+                    max_fm_corr_dict[key2].to_json(path_or_buf=f'{save_path}/{key2}.json', orient="index")
+                    min_fm_corr_dict[key3].to_json(path_or_buf=f'{save_path}/{key3}.json', orient="index")
+                    # Export stats_max_corr_dict and stats_min_corr_dict
+                    stats_max_corr_dict[key4].to_json(path_or_buf=f'{save_path}/{key4}.json', orient="index")
+                    stats_min_corr_dict[key5].to_json(path_or_buf=f'{save_path}/{key5}.json', orient="index")
             elif file_type == 'csv':
-                for (key1, key2, key3, key4, key5) in zip(fm_corr_dict.keys(), fm_corr_max_dict.keys(),
-                                                          fm_corr_min_dict.keys(), stats_max_corr.keys(),
-                                                          stats_min_corr.keys()):
+                for (key1, key2, key3, key4, key5) in zip(fm_corr_dict.keys(), max_fm_corr_dict.keys(),
+                                                          min_fm_corr_dict.keys(), stats_max_corr_dict.keys(),
+                                                          stats_min_corr_dict.keys()):
                     # Export fm_corr_dict
                     fm_corr_dict[key1].to_csv(path_or_buf=f'{save_path}/{key1}.csv', sep=',', index=False)
-                    # Export fm_corr_max_dict and fm_corr_min_dict
-                    fm_corr_max_dict[key2].to_csv(path_or_buf=f'{save_path}/{key2}.csv', sep=',', index=False)
-                    fm_corr_min_dict[key3].to_csv(path_or_buf=f'{save_path}/{key3}.csv', sep=',', index=False)
-                    # Export stats_max_corr and stats_min_corr
-                    stats_max_corr[key4].to_csv(path_or_buf=f'{save_path}/{key4}.csv', sep=',', index=False)
-                    stats_min_corr[key5].to_csv(path_or_buf=f'{save_path}/{key5}.csv', sep=',', index=False)
+                    # Export max_fm_corr_dict and min_fm_corr_dict
+                    max_fm_corr_dict[key2].to_csv(path_or_buf=f'{save_path}/{key2}.csv', sep=',', index=False)
+                    min_fm_corr_dict[key3].to_csv(path_or_buf=f'{save_path}/{key3}.csv', sep=',', index=False)
+                    # Export stats_max_corr_dict and stats_min_corr_dict
+                    stats_max_corr_dict[key4].to_csv(path_or_buf=f'{save_path}/{key4}.csv', sep=',', index=False)
+                    stats_min_corr_dict[key5].to_csv(path_or_buf=f'{save_path}/{key5}.csv', sep=',', index=False)
                     # Memory cleaning
+
         if memory_cleaning:
             del fm_list_model1, fm_list_model2
             gc.collect()
             torch.cuda.empty_cache()
         else:
-            return fm_corr_dict, fm_corr_max_dict, fm_corr_min_dict, stats_max_corr, stats_min_corr
+            return fm_corr_dict, max_fm_corr_dict, min_fm_corr_dict, stats_max_corr_dict, stats_min_corr_dict
