@@ -216,7 +216,6 @@ class CorrelationExplorer:
 
         return fm_corr_dict
 
-    # TODO: documentar a função
     def get_min_correlations(
             self,
             layers_metadata1: dict,
@@ -276,7 +275,6 @@ class CorrelationExplorer:
                 column_to_group = model1_fm_id_column
             else:
                 column_to_group = model2_fm_id_column
-
 
             df_aux = feature_maps_corr_dict[key].copy()
             df_aux = df_aux[df_aux['correlation'] >= threshold]
@@ -402,37 +400,42 @@ class CorrelationExplorer:
         median and standard deviation.
 
         """
-        stats_corr = {}
+        stats_correlation, stats_correlation_dict = [], {}
 
         for i, key in enumerate(fm_corr_max_or_min_dict.keys()):
 
             if layers_metadata1['n_maps'][0] < layers_metadata2['n_maps'][0]:
-                column = fm_corr_max_or_min_dict[key].columns[0]
+                column_to_group = fm_corr_max_or_min_dict[key].columns[0]
+                model_layer = layers_metadata1['model_name'] + '_layer'
+                # TODO Generalizar a obtenção do nmaps para qualquer layer com diferentes nmaps
+                n_maps = layers_metadata1['n_maps'][0]
             else:
-                column = fm_corr_max_or_min_dict[key].columns[1]
+                column_to_group = fm_corr_max_or_min_dict[key].columns[1]
+                model_layer = layers_metadata2['model_name'] + '_layer'
+                n_maps = layers_metadata1['n_maps'][0]
 
-            aux = fm_corr_max_or_min_dict[key].copy()
-            aux[fm_corr_max_or_min_dict[key].columns[0]] = aux[fm_corr_max_or_min_dict[key].columns[0]].astype('str')
-            aux[fm_corr_max_or_min_dict[key].columns[1]] = aux[fm_corr_max_or_min_dict[key].columns[1]].astype('str')
-            stats_corr[f'stats_{key}'] = pd.DataFrame(aux[column].value_counts())
-            # Reset index
-            stats_corr[f'stats_{key}'] = stats_corr[f'stats_{key}'].reset_index()
-            # Rename columns
-            stats_corr[f'stats_{key}'].columns = [column, 'counts']
-            # Calculate relative frequency
-            stats_corr[f'stats_{key}']['freq%'] = round(
-                100 * stats_corr[f'stats_{key}']['counts'] / stats_corr[f'stats_{key}']['counts'].sum(), 4)
-            # Calculate mean, median and std
-            stats_corr[f'stats_{key}']['mean'] = stats_corr[f'stats_{key}'][column].astype('int64').apply(
-                lambda x: fm_corr_max_or_min_dict[key][fm_corr_max_or_min_dict[key][column] == x]['correlation'].mean())
-            stats_corr[f'stats_{key}']['median'] = stats_corr[f'stats_{key}'][column].astype('int64').apply(
-                lambda x: fm_corr_max_or_min_dict[key][fm_corr_max_or_min_dict[key][column] == x][
-                    'correlation'].median())
-            stats_corr[f'stats_{key}']['std'] = stats_corr[f'stats_{key}'][column].astype('int64').apply(
-                lambda x: fm_corr_max_or_min_dict[key][fm_corr_max_or_min_dict[key][column] == x]['correlation'].std())
-            stats_corr[f'stats_{key}']['std'].replace(np.nan, 0, inplace=True)
+            df_aux = fm_corr_max_or_min_dict[key].copy()
+            pivoted_stats = pd.pivot_table(
+                df_aux,
+                index=[column_to_group, model_layer],
+                values=['correlation'],
+                aggfunc=('count', 'mean', 'median', 'std')
+            ).swaplevel(0, 1, axis=1)  # swap the two innermost levels of the index
 
-        return stats_corr
+            pivoted_stats.columns = pivoted_stats.columns.map('_'.join)
+            pivoted_stats.reset_index(level=1, inplace=True)
+            pivoted_stats.reset_index(level=0, inplace=True)
+            pivoted_stats['count_freq(%)'] = round(100 * pivoted_stats['count_correlation'] / n_maps, 4)
+            pivoted_stats.sort_values(by=[model_layer, 'count_correlation'], ascending=(True, False), inplace=True)
+            pivoted_stats.reset_index(drop=True, inplace=True)
+            pivoted_stats.replace(np.nan, 0, inplace=True)
+
+            stats_correlation.append(pivoted_stats)
+            stats_correlation_dict[f'stats_{key}'] = pivoted_stats
+
+        stats_correlation = pd.concat(stats_correlation)
+
+        return stats_correlation, stats_correlation_dict
 
     # TODO: documentar a função
     def correlation_pipeline(
