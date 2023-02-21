@@ -238,38 +238,93 @@ class CorrelationExplorer:
 
         return fm_corr_min_dict
 
-    # TODO: documentar a função
     def get_max_correlations(
-            self,
-            layers_metadata1,
-            layers_metadata2,
-            fm_corr_dict
-    ):
-        """Get the max correlation between two different
-      """
+            layers_metadata1: dict,
+            layers_metadata2: dict,
+            feature_maps_corr_dict: dict,
+            threshold: float = 0.0,
+            same_models: bool = False
+    ) -> pd.DataFrame:
+        """Obtains the maximum correlation among all combinations of correlations between the feature maps of two models,
+        given the metadata of two observed layers, and a dictionary with DataFrames that represent the correlation
+        between the feature maps of the two models.
 
-        fm_corr_max_dict = {}
+        Parameters:
+        -----------
+        layers_metadata1: dict
+            A dictionary that contains the metadata for the first model's layer of interest.
+            Example: {'layer_name': ['Conv1'], 'n_maps': [32]}
 
-        for i, key in enumerate(fm_corr_dict.keys()):
+        layers_metadata2: dict
+            A dictionary that contains the metadata for the second model's layer of interest.
+            Example: {'layer_name': ['Conv2'], 'n_maps': [64]}
 
-            first_column = fm_corr_dict[key].columns[0]
-            second_column = fm_corr_dict[key].columns[1]
+        feature_maps_corr_dict: dict
+            A dictionary that contains DataFrames with the correlation values between the feature maps of the two models.
+            Each key of the dictionary should represent a unique pair of layers, and each DataFrame should have the following
+            columns: 'model1_fm_id', 'model2_fm_id', 'correlation', 'model1_layer_name', 'model2_layer_name'.
+
+        threshold: float (default 0.0)
+            A threshold to filter the feature maps that have a correlation value greater or equal this value.
+
+        same_models: bool (default False)
+            A boolean flag that indicates whether the two layers belong to the same model. If True, the function will not
+            consider the correlation value of same feature maps from the same layer.
+
+        Returns:
+        --------
+        max_feature_maps_corr: pd.DataFrame
+            A DataFrame that contains the maximum correlation values between all combinations of feature maps of the two
+            models. The DataFrame will have the following columns: 'model1_fm_id', 'model2_fm_id', 'correlation',
+            'model1_layer_name', 'model2_layer_name'.
+        """
+
+        max_feature_maps_corr = []
+
+        for i, key in enumerate(feature_maps_corr_dict.keys()):
+
+            df_aux = pd.DataFrame()
+
+            model1_fm_id_column = feature_maps_corr_dict[key].columns[0]
+            model2_fm_id_column = feature_maps_corr_dict[key].columns[1]
+            model1_layer_name_column = feature_maps_corr_dict[key].columns[-2]
+            model2_layer_name_column = feature_maps_corr_dict[key].columns[-1]
+
+            model1_layer_name = feature_maps_corr_dict[key][model1_layer_name_column][0]
+            model2_layer_name = feature_maps_corr_dict[key][model2_layer_name_column][0]
 
             if layers_metadata1['n_maps'][0] >= layers_metadata2['n_maps'][0]:
-                column_groupby = first_column
+                column_to_group = model1_fm_id_column
             else:
-                column_groupby = second_column
+                column_to_group = model2_fm_id_column
 
-            if fm_corr_max_dict['layer_path'][i] == layers_metadata2['layer_path'][i]:
-                fm_corr_dict[key].query('correlation != 1.0 and (first_column != second_column)', inplace=True)
+            # Filter to avoid getting the correlation == 1 of the same feature map
+            if same_models:
+                df_aux = feature_maps_corr_dict[key].copy()
+                df_aux = df_aux[df_aux[model1_fm_id_column] != df_aux[model2_fm_id_column]]
+                df_aux = df_aux[df_aux['correlation'] >= threshold]
+            else:
+                df_aux = feature_maps_corr_dict[key].copy()
+                df_aux = df_aux[df_aux['correlation'] >= threshold]
 
-            fm_corr_max_dict[f'max_{key}'] = fm_corr_dict[key].loc[
-                fm_corr_dict[key].astype(float)
-                .groupby(column_groupby)['correlation']
+                # Drop the layer name columns
+            df_aux.drop([model1_layer_name_column, model2_layer_name_column], axis=1, inplace=True)
+            # Get the max correlation
+            df_aux = df_aux.loc[
+                df_aux
+                .astype(float)
+                .groupby(column_to_group)['correlation']
                 .idxmax()
             ].reset_index(drop=True)
 
-        return fm_corr_max_dict
+            df_aux[model1_layer_name_column] = model1_layer_name
+            df_aux[model2_layer_name_column] = model2_layer_name
+
+            max_feature_maps_corr.append(df_aux)
+
+        max_feature_maps_corr = pd.concat(max_feature_maps_corr)
+
+        return max_feature_maps_corr
 
     # TODO: documentar a função
     def get_correlation_stats(
