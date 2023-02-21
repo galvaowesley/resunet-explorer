@@ -21,42 +21,51 @@ def check_models_name(model1_name, model2_name):
     if model1_name == model2_name:
         model1_name = model1_name + '(1)'
         model2_name = model2_name + '(2)'
-    else:
-        model1_name
-        model2_name
 
     return model1_name, model2_name
 
 
+def check_if_map_is_zero(
+        feature_map1,
+        feature_map2,
+):
+    """Function to check if the pair of feature maps are mostly composed of zero values. It's a treatment to avoid
+  NaN correlations.
+  """
+    # Calculate standard deviation of both feature maps
+    std_fm_1 = feature_map1.std()
+    std_fm_2 = feature_map2.std()
+
+    if (std_fm_1 < 1e-10) and (std_fm_2 < 1e-10):
+        # If std_fm < 1e-10, then zero_flag_fm = 1.
+        zero_flag_fm_1 = 1
+        zero_flag_fm_2 = 1
+    elif (std_fm_1 < 1e-10) and (std_fm_2 >= 1e-10):
+        zero_flag_fm_1 = 1
+        zero_flag_fm_2 = 0
+    elif (std_fm_1 >= 1e-10) and (std_fm_2 < 1e-10):
+        zero_flag_fm_1 = 0
+        zero_flag_fm_2 = 1
+    else:
+        zero_flag_fm_1 = 0
+        zero_flag_fm_2 = 0
+
+    return zero_flag_fm_1, zero_flag_fm_2
+
+
 class CorrelationExplorer:
 
-    def check_if_map_is_zero(
-            self,
-            feature_map1,
-            feature_map2,
-    ):
-        """Function to check if the pair of feature maps are mostly composed of zero values. It's a treatment to avoid
-      NaN correlations.
-      """
-        # Calculate standard deviation of both feature maps
-        std_fm_1 = feature_map1.std()
-        std_fm_2 = feature_map2.std()
-
-        if (std_fm_1 < 1e-10) and (std_fm_2 < 1e-10):
-            # If std_fm < 1e-10, then zero_flag_fm = 1.
-            zero_flag_fm_1 = 1
-            zero_flag_fm_2 = 1
-        elif (std_fm_1 < 1e-10) and (std_fm_2 >= 1e-10):
-            zero_flag_fm_1 = 1
-            zero_flag_fm_2 = 0
-        elif (std_fm_1 >= 1e-10) and (std_fm_2 < 1e-10):
-            zero_flag_fm_1 = 0
-            zero_flag_fm_2 = 1
-        else:
-            zero_flag_fm_1 = 0
-            zero_flag_fm_2 = 0
-
-        return zero_flag_fm_1, zero_flag_fm_2
+    def __init__(self):
+        self.fm_corr_dict = None
+        self.min_fm_corr_dict = None
+        self.max_fm_corr_dict = None
+        self.stats_min_corr_dict = None
+        self.stats_max_corr_dict = None
+        self.fm_corr = None
+        self.min_fm_corr = None
+        self.max_fm_corr = None
+        self.stats_min_corr = None
+        self.stats_max_corr = None
 
     def pearson_correlation(
             self,
@@ -142,7 +151,7 @@ class CorrelationExplorer:
                 # Reshaping it into a one-dimensional tensor
                 layer_2_map_1d = model2_feature_map[map_idx2].flatten()
 
-                zero_flag_fm_1, zero_flag_fm_2 = self.check_if_map_is_zero(layer_1_map_1d, layer_2_map_1d)
+                zero_flag_fm_1, zero_flag_fm_2 = check_if_map_is_zero(layer_1_map_1d, layer_2_map_1d)
 
                 if (zero_flag_fm_1 == 1) and (zero_flag_fm_2 == 1):
                     corr = 1.0
@@ -193,7 +202,7 @@ class CorrelationExplorer:
             layers_metadata2,
             feature_list_model1,
             feature_list_model2
-    ):
+    ) -> tuple[Union[Union[Series, DataFrame], Any], dict[str, Any]]:
 
         # A dict to store DataFrames of feature maps correlations
         feature_maps_corr, feature_maps_corr_dict = [], {}
@@ -218,7 +227,10 @@ class CorrelationExplorer:
                     n_maps2=n_maps2
                 )
 
-                feature_maps_corr.append(feature_maps_corr_dict[f'{model1_name}_{model2_name}_{layer_name1}_{layer_name2}'])
+                feature_maps_corr.append(
+                    feature_maps_corr_dict[f'{model1_name}_{model2_name}_{layer_name1}_{layer_name2}'])
+
+        feature_maps_corr = pd.concat(feature_maps_corr)
 
         return feature_maps_corr, feature_maps_corr_dict
 
@@ -398,9 +410,10 @@ class CorrelationExplorer:
     # TODO: documentar a função
     def get_correlation_stats(
             self,
+            max_or_fm_corr_dict,
             layers_metadata1,
             layers_metadata2,
-            max_or_fm_corr_dict
+            same_model=False
     ):
 
         """From the maximum or minimum correlation dict, this function calculates the stats of the most frequent
@@ -410,16 +423,21 @@ class CorrelationExplorer:
         """
         stats_correlation, stats_correlation_dict = [], {}
 
+        if same_model:
+            model1_name, model2_name = check_models_name(layers_metadata1['model_name'], layers_metadata2['model_name'])
+        else:
+            model1_name, model2_name = layers_metadata1['model_name'], layers_metadata2['model_name']
+
         for i, key in enumerate(max_or_fm_corr_dict.keys()):
 
             if layers_metadata1['n_maps'][0] < layers_metadata2['n_maps'][0]:
                 column_to_group = max_or_fm_corr_dict[key].columns[0]
-                model_layer = layers_metadata1['model_name'] + '_layer'
+                model_layer = model1_name + '_layer'
                 # TODO Generalizar a obtenção do nmaps para qualquer layer com diferentes nmaps
                 n_maps = layers_metadata1['n_maps'][0]
             else:
                 column_to_group = max_or_fm_corr_dict[key].columns[1]
-                model_layer = layers_metadata2['model_name'] + '_layer'
+                model_layer = model2_name + '_layer'
                 n_maps = layers_metadata1['n_maps'][0]
 
             df_aux = max_or_fm_corr_dict[key].copy()
@@ -459,6 +477,7 @@ class CorrelationExplorer:
             min_corr_threshold=0.0,
             max_corr_threshold=1.0,
             save_path=None,
+            condensed_files=True,
             file_type='csv',
             device='cuda',
             memory_cleaning=False
@@ -482,75 +501,137 @@ class CorrelationExplorer:
         fm_list_model2 = erm_model2.get_multiple_feature_maps(layers=layers_metadata_model2['layer'])
 
         # Compute correlation between features maps of two models
-        fm_corr_dict = self.multiple_feature_maps_correlation(
+        self.fm_corr, self.fm_corr_dict = self.multiple_feature_maps_correlation(
             layers_metadata1=layers_metadata_model1,
             layers_metadata2=layers_metadata_model2,
             feature_list_model1=fm_list_model1,
             feature_list_model2=fm_list_model2
         )
         # Compute the maximum correlation between features maps of different layers
-        max_fm_corr, max_fm_corr_dict = self.get_max_correlations(
+        self.max_fm_corr, self.max_fm_corr_dict = self.get_max_correlations(
             layers_metadata1=layers_metadata_model1,
             layers_metadata2=layers_metadata_model2,
-            feature_maps_corr_dict=fm_corr_dict,
+            feature_maps_corr_dict=self.fm_corr_dict,
             min_corr_threshold=min_corr_threshold,
             same_model=same_model
         )
         # Compute the minimum correlation between features maps of different layers
-        min_fm_corr, min_fm_corr_dict = self.get_min_correlations(
+        self.min_fm_corr, self.min_fm_corr_dict = self.get_min_correlations(
             layers_metadata1=layers_metadata_model1,
             layers_metadata2=layers_metadata_model2,
-            feature_maps_corr_dict=fm_corr_dict,
+            feature_maps_corr_dict=self.fm_corr_dict,
             max_corr_threshold=max_corr_threshold
         )
         # Compute statistics for the maximum correlations
-        stats_max_corr, stats_max_corr_dict = self.get_correlation_stats(
+        self.stats_max_corr, self.stats_max_corr_dict = self.get_correlation_stats(
+            max_or_fm_corr_dict=self.max_fm_corr_dict,
             layers_metadata1=layers_metadata_model1,
             layers_metadata2=layers_metadata_model2,
-            max_or_fm_corr_dict=max_fm_corr_dict
+            same_model=same_model
         )
         # Compute statistics for the minimum correlations
-        stats_min_corr, stats_min_corr_dict = self.get_correlation_stats(
+        self.stats_min_corr, self.stats_min_corr_dict = self.get_correlation_stats(
+            max_or_fm_corr_dict=self.min_fm_corr_dict,
             layers_metadata1=layers_metadata_model1,
             layers_metadata2=layers_metadata_model2,
-            max_or_fm_corr_dict=min_fm_corr_dict
+            same_model=same_model
         )
 
-        # TODO Verificar se o diretório é válido.
         if save_path is not None:
-            # Save stats_max_corr_dict's dataframes as json or CSV
-            if file_type == 'json':
-                for (key1, key2, key3, key4, key5) in zip(fm_corr_dict.keys(), max_fm_corr_dict.keys(),
-                                                          min_fm_corr_dict.keys(), stats_max_corr_dict.keys(),
-                                                          stats_min_corr_dict.keys()):
-                    # Export fm_corr_dict
-                    fm_corr_dict[key1].to_json(path_or_buf=f'{save_path}/{key1}.json', orient="index")
-                    # Export max_fm_corr_dict and min_fm_corr_dict
-                    max_fm_corr_dict[key2].to_json(path_or_buf=f'{save_path}/{key2}.json', orient="index")
-                    min_fm_corr_dict[key3].to_json(path_or_buf=f'{save_path}/{key3}.json', orient="index")
-                    # Export stats_max_corr_dict and stats_min_corr_dict
-                    stats_max_corr_dict[key4].to_json(path_or_buf=f'{save_path}/{key4}.json', orient="index")
-                    stats_min_corr_dict[key5].to_json(path_or_buf=f'{save_path}/{key5}.json', orient="index")
-            elif file_type == 'csv':
-                for (key1, key2, key3, key4, key5) in zip(fm_corr_dict.keys(), max_fm_corr_dict.keys(),
-                                                          min_fm_corr_dict.keys(), stats_max_corr_dict.keys(),
-                                                          stats_min_corr_dict.keys()):
-                    # Export fm_corr_dict
-                    fm_corr_dict[key1].to_csv(path_or_buf=f'{save_path}/{key1}.csv', sep=',', index=False)
-                    # Export max_fm_corr_dict and min_fm_corr_dict
-                    max_fm_corr_dict[key2].to_csv(path_or_buf=f'{save_path}/{key2}.csv', sep=',', index=False)
-                    min_fm_corr_dict[key3].to_csv(path_or_buf=f'{save_path}/{key3}.csv', sep=',', index=False)
-                    # Export stats_max_corr_dict and stats_min_corr_dict
-                    stats_max_corr_dict[key4].to_csv(path_or_buf=f'{save_path}/{key4}.csv', sep=',', index=False)
-                    stats_min_corr_dict[key5].to_csv(path_or_buf=f'{save_path}/{key5}.csv', sep=',', index=False)
-                    # Memory cleaning
+            self.save_all_files(
+                save_path=save_path,
+                layers_metadata1=layers_metadata_model1,
+                layers_metadata2=layers_metadata_model2,
+                file_type=file_type,
+                condensed_files=condensed_files
+            )
 
         if memory_cleaning:
             del fm_list_model1, fm_list_model2
             gc.collect()
             torch.cuda.empty_cache()
         else:
-            return fm_corr_dict, max_fm_corr_dict, min_fm_corr_dict, stats_max_corr_dict, stats_min_corr_dict
+            return self.fm_corr_dict, self.max_fm_corr_dict, self.min_fm_corr_dict, self.stats_max_corr_dict, self.stats_min_corr_dict
 
+    def save_all_files(
+            self,
+            save_path: str,
+            layers_metadata1: dict,
+            layers_metadata2: dict,
+            file_type: str = 'csv',
+            condensed_files: bool = True
+    ):
+        """
+      """
 
+        # TODO Verificar se o diretório é válido. Se não for, criar o diretório
 
+        if condensed_files:
+            model1_name = layers_metadata1['model_name']
+            model2_name = layers_metadata2['model_name']
+            # Save all condensed dataframes as json
+            if file_type == 'json':
+                self.fm_corr.to_json(
+                    path_or_buf=f'{save_path}/{model1_name}_vs_{model2_name}_fm_corr.json',
+                    orient="index"
+                )
+                self.max_fm_corr.to_json(
+                    path_or_buf=f'{save_path}/max_{model1_name}_vs_{model2_name}_fm_corr.json',
+                    orient="index"
+                )
+                self.min_fm_corr.to_json(
+                    path_or_buf=f'{save_path}/min_{model1_name}_vs_{model2_name}_fm_corr.json',
+                    orient="index"
+                )
+                self.stats_max_corr.to_json(
+                    path_or_buf=f'{save_path}/stats_max_{model1_name}_vs_{model2_name}.json',
+                    orient="index"
+                )
+                self.stats_min_corr.to_json(
+                    path_or_buf=f'{save_path}/stats_min_{model1_name}_vs_{model2_name}.json',
+                    orient="index"
+                )
+            # Save all condensed dataframes as CSV
+            elif file_type == 'csv':
+                self.fm_corr.to_csv(
+                    path_or_buf=f'{save_path}/{model1_name}_vs_{model2_name}_fm_corr.csv',
+                    index=False
+                )
+                self.max_fm_corr.to_csv(
+                    path_or_buf=f'{save_path}/max_{model1_name}_vs_{model2_name}_fm_corr.csv',
+                    index=False
+                )
+                self.min_fm_corr.to_csv(
+                    path_or_buf=f'{save_path}/min_{model1_name}_vs_{model2_name}_fm_corr.csv',
+                    index=False
+                )
+                self.stats_max_corr.to_csv(
+                    path_or_buf=f'{save_path}/stats_max_{model1_name}_vs_{model2_name}.csv',
+                    index=False
+                )
+                self.stats_min_corr.to_csv(
+                    path_or_buf=f'{save_path}/stats_min_{model1_name}_vs_{model2_name}.csv',
+                    index=False
+                )
+
+        if condensed_files is False:
+            # Save stats_max_corr_dict's dataframes as json or CSV
+            if file_type == 'json':
+                # Extract the keys from the dictionary and save the dataframes as json
+                for (key1, key2, key3, key4, key5) in zip(self.fm_corr_dict.keys(), self.max_fm_corr_dict.keys(),
+                                                          self.min_fm_corr_dict.keys(), self.stats_max_corr_dict.keys(),
+                                                          self.stats_min_corr_dict.keys()):
+                    self.fm_corr_dict[key1].to_json(path_or_buf=f'{save_path}/{key1}.json', orient="index")
+                    self.max_fm_corr_dict[key2].to_json(path_or_buf=f'{save_path}/{key2}.json', orient="index")
+                    self.min_fm_corr_dict[key3].to_json(path_or_buf=f'{save_path}/{key3}.json', orient="index")
+                    self.stats_max_corr_dict[key4].to_json(path_or_buf=f'{save_path}/{key4}.json', orient="index")
+                    self.stats_min_corr_dict[key5].to_json(path_or_buf=f'{save_path}/{key5}.json', orient="index")
+            # Extract the keys from the dictionary and save the dataframes as csv
+            elif file_type == 'csv':
+                for (key1, key2, key3, key4, key5) in zip(self.fm_corr_dict.keys(), self.max_fm_corr_dict.keys(),
+                                                          self.min_fm_corr_dict.keys(), self.stats_max_corr_dict.keys(),
+                                                          self.stats_min_corr_dict.keys()):
+                    self.fm_corr_dict[key1].to_csv(path_or_buf=f'{save_path}/{key1}.csv', sep=',', index=False)
+                    self.max_fm_corr_dict[key2].to_csv(path_or_buf=f'{save_path}/{key2}.csv', sep=',', index=False)
+                    self.min_fm_corr_dict[key3].to_csv(path_or_buf=f'{save_path}/{key3}.csv', sep=',', index=False)
+                    self.stats_max_corr_dict[key4].to_csv(path_or_buf=f'{save_path}/{key4}.csv', sep=',', index=False)
