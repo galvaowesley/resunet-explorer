@@ -564,7 +564,7 @@ class CorrelationExplorer:
         """
       """
 
-        # TODO Verificar se o diretório é válido. Se não for, criar o diretório
+        # TODO Verificar se o diretório é válido. Se não for, criar o diretório.
 
         if condensed_files:
             model1_name = layers_metadata1['model_name']
