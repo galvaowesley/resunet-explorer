@@ -89,7 +89,7 @@ class CorrelationExplorer:
             corr.numpy()
 
         return corr
-
+    #identation
     def feature_maps_correlation(
             self,
             model1_name: str,
@@ -618,20 +618,53 @@ class CorrelationExplorer:
             # Save stats_max_corr_dict's dataframes as json or CSV
             if file_type == 'json':
                 # Extract the keys from the dictionary and save the dataframes as json
-                for (key1, key2, key3, key4, key5) in zip(self.fm_corr_dict.keys(), self.max_fm_corr_dict.keys(),
-                                                          self.min_fm_corr_dict.keys(), self.stats_max_corr_dict.keys(),
-                                                          self.stats_min_corr_dict.keys()):
-                    self.fm_corr_dict[key1].to_json(path_or_buf=f'{save_path}/{key1}.json', orient="index")
-                    self.max_fm_corr_dict[key2].to_json(path_or_buf=f'{save_path}/{key2}.json', orient="index")
-                    self.min_fm_corr_dict[key3].to_json(path_or_buf=f'{save_path}/{key3}.json', orient="index")
-                    self.stats_max_corr_dict[key4].to_json(path_or_buf=f'{save_path}/{key4}.json', orient="index")
-                    self.stats_min_corr_dict[key5].to_json(path_or_buf=f'{save_path}/{key5}.json', orient="index")
+                for (key1, key2, key3, key4, key5) in zip(self.fm_corr_dict.keys(),
+                                                          self.max_fm_corr_dict.keys(),
+                                                          self.min_fm_corr_dict.keys(),
+                                                          self.stats_max_corr_dict.keys(),
+                                                          self.stats_min_corr_dict.keys()
+                                                          ):
+                    self.fm_corr_dict[key1].to_json(
+                        path_or_buf=f'{save_path}/{key1}.json',
+                        orient="index"
+                    )
+                    self.max_fm_corr_dict[key2].to_json(
+                        path_or_buf=f'{save_path}/{key2}.json',
+                        orient="index"
+                    )
+                    self.min_fm_corr_dict[key3].to_json(
+                        path_or_buf=f'{save_path}/{key3}.json',
+                        orient="index"
+                    )
+                    self.stats_max_corr_dict[key4].to_json(
+                        path_or_buf=f'{save_path}/{key4}.json',
+                        orient="index"
+                    )
+                    self.stats_min_corr_dict[key5].to_json(
+                        path_or_buf=f'{save_path}/{key5}.json',
+                        orient="index"
+                    )
             # Extract the keys from the dictionary and save the dataframes as csv
             elif file_type == 'csv':
-                for (key1, key2, key3, key4, key5) in zip(self.fm_corr_dict.keys(), self.max_fm_corr_dict.keys(),
-                                                          self.min_fm_corr_dict.keys(), self.stats_max_corr_dict.keys(),
-                                                          self.stats_min_corr_dict.keys()):
-                    self.fm_corr_dict[key1].to_csv(path_or_buf=f'{save_path}/{key1}.csv', sep=',', index=False)
-                    self.max_fm_corr_dict[key2].to_csv(path_or_buf=f'{save_path}/{key2}.csv', sep=',', index=False)
-                    self.min_fm_corr_dict[key3].to_csv(path_or_buf=f'{save_path}/{key3}.csv', sep=',', index=False)
-                    self.stats_max_corr_dict[key4].to_csv(path_or_buf=f'{save_path}/{key4}.csv', sep=',', index=False)
+                for (key1, key2, key3, key4, key5) in zip(self.fm_corr_dict.keys(),
+                                                          self.max_fm_corr_dict.keys(),
+                                                          self.min_fm_corr_dict.keys(),
+                                                          self.stats_max_corr_dict.keys(),
+                                                          self.stats_min_corr_dict.keys()
+                                                          ):
+                    self.fm_corr_dict[key1].to_csv(
+                        path_or_buf=f'{save_path}/{key1}.csv',
+                        sep=',', index=False
+                    )
+                    self.max_fm_corr_dict[key2].to_csv(
+                        path_or_buf=f'{save_path}/{key2}.csv',
+                        sep=',', index=False
+                    )
+                    self.min_fm_corr_dict[key3].to_csv(
+                        path_or_buf=f'{save_path}/{key3}.csv',
+                        sep=',', index=False
+                    )
+                    self.stats_max_corr_dict[key4].to_csv(
+                        path_or_buf=f'{save_path}/{key4}.csv',
+                        sep=',', index=False
+                    )
